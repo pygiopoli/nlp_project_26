@@ -4,6 +4,8 @@
 
 **Status:** In development · **Language:** Python · **Domain:** Biomedical Natural Language Processing
 
+Technical Report on the project: [Overleaf link](https://www.overleaf.com/project/6ac8dfcb5043816f71cb841f/share#925442360e3c2fa9925fb68716f5c4f14e8b7d8c9e26725a)
+
 ## Overview
 
 Medical language contains many ambiguous terms and acronyms. The same expression may refer to different biomedical concepts depending on its surrounding context. **Word Sense Disambiguation (WSD)** identifies the intended meaning of a target word or expression in a sentence or document.
