@@ -34,6 +34,12 @@ For the sampled experiment, we will randomly choose **10 acronyms** and **10 reg
 
 NLTK and `pywsd` generally produce **WordNet synsets**, while MSH-WSD labels refer to **UMLS CUIs**. These are different sense inventories: their identifiers cannot be compared directly. Before calculating accuracy, the evaluation pipeline must define and document a defensible mapping between WordNet predictions and MSH-WSD candidate concepts, or instead use a concept-aware adaptation that scores descriptions associated with the candidate CUIs. **Unmapped and unscorable cases must be counted and reported**, not silently treated as correct.
 
+## Workload division
+| | p1 | p2 | p3 | p4 | p5 | p6 | p7 | p8 | possible extension | report |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **fralo** | | x | x | | | x | | x | x | |
+| **pygio** | x | | | x | x | | x | | | x |
+
 ## Methods and experiments
 
 ### 1. Baseline: standard Lesk in NLTK
