@@ -237,17 +237,7 @@ The final analysis will include per-term examples, error categories, runtime com
 ## References
 
 1. Lesk, M. (1986). *Automatic sense disambiguation using machine readable dictionaries: How to tell a pine cone from an ice cream cone*. Proceedings of SIGDOC '86. https://doi.org/10.1145/318723.318728
-2. Banerjee, S., & Pedersen, T. (2002). *An adapted Lesk algorithm for word sense disambiguation using WordNet*. CICLing 2002. https://aclanthology.org/W02-1003/
-3. Fellbaum, C. (Ed.). (1998). *WordNet: An Electronic Lexical Database*. MIT Press. https://wordnet.princeton.edu/
-4. Wu, Z., & Palmer, M. (1994). *Verb semantics and lexical selection*. Proceedings of ACL 1994. https://aclanthology.org/P94-1019/
-5. Resnik, P. (1995). *Using information content to evaluate semantic similarity in a taxonomy*. IJCAI 1995. https://arxiv.org/abs/cmp-lg/9511007
-6. Jimeno-Yepes, A. J., McInnes, B. T., & Aronson, A. R. (2011). *Exploiting MeSH indexing in MEDLINE to generate a data set for word sense disambiguation*. BMC Bioinformatics, 12, 223. https://doi.org/10.1186/1471-2105-12-223
-7. Tulkens, S., Šuster, S., & Daelemans, W. (2016). *Using Distributed Representations to Disambiguate Biomedical and Clinical Concepts*. BioNLP Workshop 2016. https://aclanthology.org/W16-2910/
-8. NLTK Word Sense Disambiguation documentation: https://www.nltk.org/howto/wsd.html
-9. `pywsd` repository: https://github.com/alvations/pywsd
-10. Yarn repository: https://github.com/clips/yarn
-11. MSH-WSD dataset card: https://huggingface.co/datasets/bigbio/msh_wsd
-12. Streamlit documentation: https://docs.streamlit.io/
+2. Orevaoghene, A (2023). *Do All Languages Cost the Same? Tokenization in the Era of Commercial Language Models* https://arxiv.org/abs/2305.13707
 
 ## Limitations and responsible use
 
