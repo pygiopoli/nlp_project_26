@@ -49,7 +49,7 @@ NLTK and `pywsd` generally produce **WordNet synsets**, while MSH-WSD labels ref
 
 | p1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | ext | report |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| ✅ | ⏳ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| ✅ | ✅ | ⏳ | ❌ | ✅ | ❌ | ⏳ | ❌ | ❌ | ❌ |
 
 ## Methods and experiments
 
