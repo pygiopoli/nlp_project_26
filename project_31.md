@@ -19,7 +19,7 @@ acronyms and average accuracy on all regular terms.
 phonetically similar wording. For this purpose, use the “Fuzzy” library in python to generate the
 character string that identifies phonetically similar words, and then use edit distance to compute the
 phonetic similarity between two words. See an example of implementation at
-https://www.analyticsvidhya.com/blog/2017/01/ultimate-guide-to-understand-implement-naturallanguage-processing-codes-in-python/. Demonstrate this reasoning on the example sentence pointed
+https://www.analyticsvidhya.com/blog/2017/01/ultimate-guide-to-understand-implement-natural-language-processing-codes-in-python/. Demonstrate this reasoning on the example sentence pointed
 out in 1) and generate a matrix that indicates the phonetic distance between each pair of words of the
 sentence.
 6) We would like to extend the Wu and Palmer-semantic similarity extension of Lesk algorithm
