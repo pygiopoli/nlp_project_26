@@ -64,7 +64,7 @@ a decision changes. Deadline: **31 October 2026**.
 | Conversion | Each algorithm converts its own synsets into `Sense` objects |
 | Registration | Plain function + `AlgorithmSpec` (key, label, description, `run(sentence, target)`) added to `REGISTERED_SPECS` in `algorithms/registry.py`; `build_registry` rejects duplicate keys. A `Protocol` or class is introduced only when a stateful algorithm (e.g. a loaded model) needs it |
 | POS filter | Four registered variants: `lesk`, `lesk_pos`, `extended_lesk`, `extended_lesk_pos` (two functions with a `use_pos` parameter); no per-algorithm options in the form for now |
-| URLs / comparison | Tentatively one page with a multi-select (`?algorithm=a&algorithm=b`) supporting any subset; to be decided in steps 6-7 |
+| URLs / comparison | Decided in step 6+7 (see below) |
 
 ### Resources and porting (step 4)
 
@@ -75,6 +75,47 @@ a decision changes. Deadline: **31 October 2026**.
 | NLTK data location | NLTK's default user folder (shared with the notebooks) |
 | Fallback flag | Same rule for every Lesk variant: `is_fallback` when the best score is 0 or shared by several candidates |
 | Shared helpers | `algorithms/nltk_utils.py`: `find_target` (also used by the form), `sense_from_synset`, `rank` |
+
+### Service (step 5)
+
+| Topic | Decision |
+|---|---|
+| Entry point | `wsd/services.py`: `disambiguate(sentence, target, algorithm_keys, registry=ALGORITHMS) -> DisambiguationReport` (no Django imports; `registry` replaceable in tests) |
+| Plain data | Algorithm results (`WSDResult`) are passed through as they are; the report adds `TaggedToken`, `AlgorithmRun` and `agreement` |
+| Failing algorithm | Every algorithm runs in its own `try/except Exception`: the run gets `result=None` and an error message, the traceback is logged, the other algorithms continue |
+| Agreement | Computed by the service: `True`/`False` when at least two algorithms chose a sense, `None` otherwise |
+| POS tagging shown on the page | Computed once by the service, independent of the selected algorithms |
+| Timing | `elapsed_ms` per algorithm (`time.perf_counter()`) |
+
+### Form, view and URL (steps 6 and 7, done together)
+
+| Topic | Decision |
+|---|---|
+| Algorithm selection | Dropdown (`ChoiceField` `algorithm`): one registered algorithm, or the reserved choice `all` (`COMPARE_ALL`, initial value) that runs every algorithm. A test checks that no algorithm uses the key `all` |
+| Target | A single word (error if it contains spaces); must appear in the sentence (checked with `find_target`) |
+| Limits | `MAX_SENTENCE_LENGTH = 500`, `MAX_TARGET_LENGTH = 50`; leading/trailing spaces stripped |
+| Word without synsets | Not a form error: each algorithm card shows "No candidate senses" (the form stays independent of WordNet) |
+| URLs | A single page `/` (`wsd:index`): empty query string = unbound form; otherwise form + results on the same page, e.g. `/?sentence=...&target=drug&algorithm=all`. `/algorithms/<key>/` kept as a possible future "about the algorithm" page |
+| Temporary template | `wsd/templates/wsd/index.html` shows the raw result in a `<pre>`; replaced by the Bootstrap layout from step 8 |
+
+### Base template (step 8)
+
+| Topic | Decision |
+|---|---|
+| Templates | `wsd/templates/wsd/base.html` (skeleton, navbar, blocks `title` and `content`), extended by `index.html`; kept inside the app (no `DIRS` setting) |
+| Bootstrap | 5.3.8 CSS from jsDelivr with SRI hash; no Bootstrap JS until a component needs it |
+| Form styling | Bootstrap classes set on the widgets in `forms.py`; each field rendered by `wsd/includes/field.html` (label, widget, help text, errors with the id Django's `aria-describedby` expects) |
+| Layout | Form in a card on top, results below at full width |
+
+### Results page (step 9)
+
+| Topic | Decision |
+|---|---|
+| Highlighting | Computed in the service: `highlight(text, matched_words)` returns `Segment(text, highlighted)` pieces (a word matches when one of its lemmas is a matched word); templates wrap highlighted segments in `<mark>`. No HTML built in Python, auto-escaping kept |
+| What is highlighted | The sentence and the chosen sense's definition; matched words are also shown as badges, since extended Lesk evidence often comes from related synsets and is not in the definition |
+| Cards | One card per algorithm (`includes/run_card.html`) in a responsive grid: one column for a single algorithm, two columns on wide screens when comparing |
+| Candidate table | Inside a closed `<details>` element (native, no JavaScript) |
+| POS tagging | Token "chips" (token, Penn tag, WordNet POS) above the cards; the target is outlined (`TaggedToken.is_target`) |
 
 ## Look and feel
 

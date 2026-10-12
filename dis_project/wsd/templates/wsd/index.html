@@ -1,0 +1,44 @@
+{% extends "wsd/base.html" %}
+
+{% block content %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" action="{% url 'wsd:index' %}">
+        {% for error in form.non_field_errors %}
+          <div class="alert alert-danger">{{ error }}</div>
+        {% endfor %}
+        <div class="row g-3">
+          <div class="col-12">
+            {% include "wsd/includes/field.html" with field=form.sentence %}
+          </div>
+          <div class="col-md-6">
+            {% include "wsd/includes/field.html" with field=form.target %}
+          </div>
+          <div class="col-md-6">
+            {% include "wsd/includes/field.html" with field=form.algorithm %}
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">Disambiguate</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if report %}
+    <section class="mb-4">
+      <h2 class="h5">POS tagging</h2>
+      {% include "wsd/includes/pos_tagging.html" with tokens=report.tagged_tokens %}
+    </section>
+
+    <section>
+      <h2 class="h5">Results</h2>
+      {# One column for a single algorithm; two columns on wide screens when comparing. #}
+      <div class="row row-cols-1 {% if report.runs|length > 1 %}row-cols-lg-2{% endif %} g-3">
+        {% for run in report.runs %}
+          <div class="col">{% include "wsd/includes/run_card.html" %}</div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+{% endblock %}

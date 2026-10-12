@@ -1,0 +1,16 @@
+{# The sentence as token "chips": token, Penn Treebank tag and WordNet POS. Expects `tokens`. #}
+<div class="d-flex flex-wrap gap-2">
+  {% for t in tokens %}
+    <div class="border rounded px-2 py-1 text-center {% if t.is_target %}border-primary border-2 bg-primary-subtle{% else %}bg-body{% endif %}"
+         {% if t.is_target %}title="Target word"{% endif %}>
+      <div class="fw-semibold">{{ t.token }}</div>
+      <div class="small text-body-secondary">
+        {{ t.penn_tag }}{% if t.wordnet_pos %} · {{ t.wordnet_pos }}{% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<p class="small text-body-secondary mt-2 mb-0">
+  Each token shows its Penn Treebank tag and, when WordNet has one, its WordNet POS
+  (n, v, a, r). The target word is outlined.
+</p>

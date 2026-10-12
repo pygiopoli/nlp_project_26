@@ -47,7 +47,7 @@ def tokenize_and_tag(sentence: str) -> list[tuple[str, str]]:
     return nltk.pos_tag(nltk.word_tokenize(sentence))
 
 
-def _lemma_forms(word: str) -> set[str]:
+def lemma_forms(word: str) -> set[str]:
     """The lowercased word and its possible lemmas (noun, verb, adjective, adverb)."""
     lowered = word.lower()
     forms = {lowered}
@@ -62,7 +62,7 @@ def find_target(tagged: list[tuple[str, str]], target: str) -> TargetMatch | Non
     Matching is case-insensitive and accepts inflected forms, so "drugs",
     "Drug" and "drug" all match. Returns None when the target is not found.
     """
-    target_forms = _lemma_forms(target)
+    target_forms = lemma_forms(target)
     for index, (token, tag) in enumerate(tagged):
         pos = penn_to_wn(tag)
         lowered = token.lower()

@@ -1,0 +1,1 @@
+{# Text split into segments (see services.highlight); kept on one line so no spaces are added. #}{% for segment in segments %}{% if segment.highlighted %}<mark>{{ segment.text }}</mark>{% else %}{{ segment.text }}{% endif %}{% endfor %}
