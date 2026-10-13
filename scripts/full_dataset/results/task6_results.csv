@@ -1,0 +1,5 @@
+method,acronyms acc,acronyms cov,terms acc,terms cov
+"Wu-Palmer (pywsd, Task 4)",0.003,0.5,0.0,
+alpha = 1,0.0,0.0,0.0,
+alpha = 0.8,0.002,0.3,0.0,
+alpha = 0.5,0.003,0.5,0.0,

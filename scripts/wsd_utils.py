@@ -206,10 +206,10 @@ def to_nltk(pywsd_synset):
     return None
 
 
-def pywsd_form(word):
-    """Spelling of the word that lets pywsd see most of the senses used in MAPPING
+def pywsd_form(word, mapping=MAPPING):
+    """Spelling of the word that lets pywsd see most of the senses used in the mapping
     (pywsd lemmatizes the word and is case-sensitive: "ALS" -> "al", "US" -> "u")."""
-    mapped = {s for synsets in MAPPING[word].values() for s in synsets}
+    mapped = {s for synsets in mapping[word].values() for s in synsets}
     best_form, best_score = word, (-1, -1)
     for form in dict.fromkeys([word, word.lower(), word.capitalize(), word.upper()]):
         found = {to_nltk(s) for s in pwn.synsets(lemmatize(form))}
@@ -257,12 +257,12 @@ def mean(values):
     values = [v for v in values if v is not None]
     return sum(values) / len(values) if values else float("nan")
 
-def accuracy(rows, word, method, covered_only=False):
+def accuracy(rows, word, method, covered_only=False, mapping=MAPPING):
     """Share of correct answers of one method on the saved predictions of one word.
     With covered_only, only the abstracts whose correct sense exists in WordNet."""
     if covered_only:
-        rows = [r for r in rows if MAPPING[word][r["cui"]]]
+        rows = [r for r in rows if mapping[word][r["cui"]]]
     if not rows:
         return None
-    correct = [r["answers"][method] in MAPPING[word][r["cui"]] for r in rows]
+    correct = [r["answers"][method] in mapping[word][r["cui"]] for r in rows]
     return sum(correct) / len(correct)
