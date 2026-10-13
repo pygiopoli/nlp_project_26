@@ -70,7 +70,7 @@ a decision changes. Deadline: **31 October 2026**.
 
 | Topic | Decision |
 |---|---|
-| Resource loading | Lazy: NLTK loads WordNet (~2.5 s) and the tagger once per process on first use; our derived resources (stopword set, lemmatizer) use `functools.cache`. No warm-up in `AppConfig.ready()` |
+| Resource loading | Lazy: NLTK loads WordNet (~2.5 s) and the tagger once per process on first use; our derived resources (stopword set, lemmatizer) use `functools.cache`. Warm-up added in step 12 (see below) |
 | NLTK data download | `python -m algorithms.nltk_data` (list in `REQUIRED_NLTK_DATA`): `wordnet`, `stopwords`, `punkt_tab`, `averaged_perceptron_tagger_eng` |
 | NLTK data location | NLTK's default user folder (shared with the notebooks) |
 | Fallback flag | Same rule for every Lesk variant: `is_fallback` when the best score is 0 or shared by several candidates |
@@ -117,6 +117,36 @@ a decision changes. Deadline: **31 October 2026**.
 | Candidate table | Inside a closed `<details>` element (native, no JavaScript) |
 | POS tagging | Token "chips" (token, Penn tag, WordNet POS) above the cards; the target is outlined (`TaggedToken.is_target`) |
 
+### Score chart (step 10)
+
+| Topic | Decision |
+|---|---|
+| Library | Chart.js 4.5.1 (UMD build) from jsDelivr with SRI hash, loaded only when there are results |
+| Data | `AlgorithmRun.chart_data` (`build_chart_data`: sense ids and scores in ranking order), written with Django's `json_script` |
+| Chart | Horizontal bars, one chart per card; chosen sense in `--bs-primary`, others in `--bs-gray-400`; height grows with the number of candidates; integer ticks only when all scores are integers |
+| JavaScript | Static file `wsd/static/wsd/score_charts.js`, included through `{% block scripts %}` in `base.html` |
+
+### Comparison mode (step 11)
+
+| Topic | Decision |
+|---|---|
+| Grouping | The service groups the runs by chosen sense (`SenseGroup`: sense id, definition, runs), most chosen first; `agreement` is now a property derived from the groups |
+| Notice | Shown only with two or more algorithms (`includes/comparison_notice.html`): green "agree", yellow "disagree" with who chose what, grey "nothing to compare"; algorithm names link to their cards (`#run-<key>`) |
+| No choice | Failed runs and runs without candidates (`runs_without_choice`) are excluded from the agreement and listed explicitly under the notice |
+| Fallback choices | Counted in the agreement (they are the sense the algorithm returns); marked by the badge on each card |
+| Summary table | Not added: the notice is enough (user choice) |
+
+### Polish (step 12)
+
+| Topic | Decision |
+|---|---|
+| Warm-up | `warm_up()` in `algorithms/nltk_utils.py`, called by `WsdConfig.ready()` only when `RUN_MAIN == "true"` (the `runserver` process that serves requests): the server starts a few seconds later, the first request is fast. Not run by `test`, `check` or `runserver --noreload`. Extracting `wordnet.zip` was measured and does not help |
+| Readable POS | Template filter `pos_name` (`wsd/templatetags/wsd_extras.py`): `n` -> noun, `v` -> verb, `a`/`s` -> adjective, `r` -> adverb |
+| Target in the evidence | `Segment.is_target`; the target is shown in bold primary color in the evidence sentence, with a legend |
+| Examples | One-click example links under the form (`EXAMPLES` in `wsd/views.py`, compare all algorithms) |
+| Loading indicator | `wsd/static/wsd/form_loading.js`: spinner and disabled button on submit or example click; reset on `pageshow` (back button) |
+| README | Postponed (user choice) |
+
 ## Look and feel
 
 | Topic | Decision |
@@ -129,4 +159,4 @@ a decision changes. Deadline: **31 October 2026**.
 
 | Topic | Decision |
 |---|---|
-| Streamlit prototype | `scripts/p7/app.py` and `scripts/p7/lesk.py` will be deleted and README section 7 updated, in a dedicated later step |
+| Streamlit prototype | `scripts/p7/` deleted in step 12. README section 7 still mentions Streamlit: to be updated when the READMEs are written |

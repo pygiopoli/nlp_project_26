@@ -77,3 +77,46 @@ class IndexViewTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "This algorithm failed.")
         self.assertContains(response, "RuntimeError: boom")
+
+    def test_score_chart_data_and_scripts(self) -> None:
+        params = {"sentence": DRUG_SENTENCE, "target": "drug", "algorithm": "lesk"}
+        response = self.client.get(self.url, params)
+        self.assertContains(response, '<script id="chart-data-lesk" type="application/json">')
+        self.assertContains(response, 'data-chart-source="chart-data-lesk"')
+        self.assertContains(response, "chart.umd.min.js")
+        self.assertContains(response, "wsd/score_charts.js")
+
+    def test_no_chart_scripts_without_results(self) -> None:
+        response = self.client.get(self.url)
+        self.assertNotContains(response, "chart.umd.min.js")
+
+    def test_disagreement_notice_in_comparison(self) -> None:
+        params = {"sentence": DRUG_SENTENCE, "target": "drug", "algorithm": "all"}
+        response = self.client.get(self.url, params)
+        self.assertContains(response, "The algorithms disagree.")
+        self.assertContains(response, 'href="#run-lesk"')
+        self.assertContains(response, 'id="run-lesk"')
+
+    def test_no_comparison_notice_for_a_single_algorithm(self) -> None:
+        params = {"sentence": DRUG_SENTENCE, "target": "drug", "algorithm": "lesk"}
+        response = self.client.get(self.url, params)
+        self.assertNotContains(response, "The algorithms disagree.")
+        self.assertNotContains(response, "The algorithms agree.")
+
+    def test_runs_without_choice_are_listed(self) -> None:
+        params = {"sentence": "He said xyzzy loudly", "target": "xyzzy", "algorithm": "all"}
+        response = self.client.get(self.url, params)
+        self.assertContains(response, "there is nothing to compare")
+        self.assertContains(response, "Not included in the comparison:")
+
+    def test_example_links_and_loading_script(self) -> None:
+        response = self.client.get(self.url)
+        self.assertContains(response, "?sentence=I+went+to+the+bank+to+deposit+my+money&amp;target=bank&amp;algorithm=all")
+        self.assertContains(response, "wsd/form_loading.js")
+
+    def test_readable_pos_and_target_in_evidence(self) -> None:
+        params = {"sentence": "I went to the bank to deposit my money", "target": "bank",
+                  "algorithm": "extended_lesk_pos"}
+        response = self.client.get(self.url, params)
+        self.assertContains(response, "POS filter: noun")
+        self.assertContains(response, '<span class="fw-bold text-primary" title="Target word">bank</span>')

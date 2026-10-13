@@ -1,8 +1,8 @@
 from django.test import SimpleTestCase
 
-from algorithms.base import AlgorithmSpec, WSDResult
+from algorithms.base import AlgorithmSpec, ScoredSense, Sense, WSDResult
 from algorithms.registry import ALGORITHMS
-from wsd.services import Segment, disambiguate, highlight
+from wsd.services import Segment, build_chart_data, disambiguate, highlight
 
 DRUG_SENTENCE = "I have been prescribed two important drugs today during my visit to clinic"
 
@@ -94,5 +94,58 @@ class HighlightTests(SimpleTestCase):
         self.assertEqual("".join(s.text for s in segments), text)
         self.assertEqual([s.text for s in segments if s.highlighted], ["medicine"])
 
+    def test_marks_the_target_in_any_form(self) -> None:
+        segments = highlight("Two drugs and a drug", (), target="drug")
+        self.assertEqual([s.text for s in segments if s.is_target], ["drugs", "drug"])
+
+    def test_target_can_also_be_a_matched_word(self) -> None:
+        segments = highlight("use recreational drugs", ("drugs",), target="drug")
+        self.assertEqual(segments[-1], Segment("drugs", highlighted=True, is_target=True))
+
     def test_no_matched_words_highlights_nothing(self) -> None:
         self.assertFalse(any(s.highlighted for s in highlight("I went to the bank", ())))
+
+
+class BuildChartDataTests(SimpleTestCase):
+    def test_labels_and_scores_in_ranking_order(self) -> None:
+        ranking = (
+            ScoredSense(Sense("drug.n.01", "n", ""), 2),
+            ScoredSense(Sense("drug.v.01", "v", ""), 0),
+        )
+        result = WSDResult(algorithm="test", target="drug", ranking=ranking)
+        self.assertEqual(build_chart_data(result), {
+            "labels": ["drug.n.01", "drug.v.01"],
+            "scores": [2, 0],
+        })
+
+    def test_no_chart_without_candidates(self) -> None:
+        self.assertIsNone(build_chart_data(WSDResult(algorithm="test", target="x", ranking=())))
+        self.assertIsNone(build_chart_data(None))
+
+
+class SenseGroupTests(SimpleTestCase):
+    def test_groups_most_chosen_first(self) -> None:
+        report = disambiguate(DRUG_SENTENCE, "drug", list(ALGORITHMS))
+        groups = [(g.sense_id, [r.key for r in g.runs]) for g in report.sense_groups]
+        self.assertEqual(groups, [
+            ("drug.n.01", ["lesk_pos", "extended_lesk", "extended_lesk_pos"]),
+            ("drug.v.01", ["lesk"]),
+        ])
+        self.assertEqual(report.runs_without_choice, ())
+        self.assertIs(report.agreement, False)
+
+    def test_runs_without_choice_are_excluded(self) -> None:
+        registry = {**ALGORITHMS, FAILING_SPEC.key: FAILING_SPEC}
+        with self.assertLogs("wsd.services", level="ERROR"):
+            report = disambiguate(
+                DRUG_SENTENCE, "drug", ["failing", "lesk_pos", "extended_lesk"], registry=registry
+            )
+        self.assertEqual([r.key for r in report.runs_without_choice], ["failing"])
+        self.assertEqual(len(report.sense_groups), 1)
+        self.assertIs(report.agreement, True)
+
+    def test_no_candidates_means_no_groups(self) -> None:
+        report = disambiguate("He said xyzzy loudly", "xyzzy", ["lesk", "extended_lesk"])
+        self.assertEqual(report.sense_groups, ())
+        self.assertEqual(len(report.runs_without_choice), 2)
+        self.assertIsNone(report.agreement)

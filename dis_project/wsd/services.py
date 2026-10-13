@@ -34,7 +34,8 @@ class Segment:
     """A piece of text, highlighted when it is part of the evidence."""
 
     text: str
-    highlighted: bool = False
+    highlighted: bool = False   # part of the evidence (matched word)
+    is_target: bool = False     # the word being disambiguated
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,17 @@ class AlgorithmRun:
     # The sentence and the chosen sense's definition, split for highlighting.
     sentence_segments: tuple[Segment, ...] = ()
     definition_segments: tuple[Segment, ...] = ()
+    # JSON-serializable data for the score chart; None when there are no candidates.
+    chart_data: dict[str, list] | None = None
+
+
+@dataclass(frozen=True)
+class SenseGroup:
+    """A chosen sense and the algorithms that chose it."""
+
+    sense_id: str
+    definition: str
+    runs: tuple[AlgorithmRun, ...]
 
 
 @dataclass(frozen=True)
@@ -59,8 +71,18 @@ class DisambiguationReport:
     target: str
     tagged_tokens: tuple[TaggedToken, ...]
     runs: tuple[AlgorithmRun, ...]
-    # True/False when at least two algorithms chose a sense, None otherwise.
-    agreement: bool | None
+    # The chosen senses, most chosen first.
+    sense_groups: tuple[SenseGroup, ...]
+    # Runs that chose no sense (error or no candidates): excluded from the agreement.
+    runs_without_choice: tuple[AlgorithmRun, ...]
+
+    @property
+    def agreement(self) -> bool | None:
+        """True/False when at least two algorithms chose a sense, None otherwise."""
+        chosen_count = sum(len(group.runs) for group in self.sense_groups)
+        if chosen_count < 2:
+            return None
+        return len(self.sense_groups) == 1
 
 
 def disambiguate(
@@ -81,7 +103,8 @@ def disambiguate(
         target=target,
         tagged_tokens=tagged_tokens,
         runs=runs,
-        agreement=compute_agreement(runs),
+        sense_groups=group_chosen_senses(runs),
+        runs_without_choice=tuple(run for run in runs if not chose_a_sense(run)),
     )
 
 
@@ -114,33 +137,66 @@ def run_algorithm(spec: AlgorithmSpec, sentence: str, target: str) -> AlgorithmR
     definition_segments: tuple[Segment, ...] = ()
     if result and result.best:
         matched_words = result.best.matched_words
-        sentence_segments = highlight(sentence, matched_words)
+        sentence_segments = highlight(sentence, matched_words, target)
         definition_segments = highlight(result.best.sense.definition, matched_words)
     return AlgorithmRun(
-        spec.key, spec.label, result, error, elapsed_ms, sentence_segments, definition_segments
+        spec.key,
+        spec.label,
+        result,
+        error,
+        elapsed_ms,
+        sentence_segments,
+        definition_segments,
+        build_chart_data(result),
     )
 
 
-def highlight(text: str, matched_words: tuple[str, ...]) -> tuple[Segment, ...]:
-    """Split `text` into segments, highlighting the words that match the evidence.
+def build_chart_data(result: WSDResult | None) -> dict[str, list] | None:
+    """Sense ids and scores in ranking order (the chosen sense comes first)."""
+    if result is None or not result.ranking:
+        return None
+    return {
+        "labels": [candidate.sense.id for candidate in result.ranking],
+        "scores": [candidate.score for candidate in result.ranking],
+    }
+
+
+def highlight(
+    text: str, matched_words: tuple[str, ...], target: str | None = None
+) -> tuple[Segment, ...]:
+    """Split `text` into segments, marking matched words and the target word.
 
     A word matches when one of its possible lemmas (lowercased) is among the
-    matched words, so "prescribed" matches "prescribe". Spaces and punctuation
-    are kept: joining the segments gives back the original text.
+    matched words, so "prescribed" matches "prescribe"; the target is found
+    the same way, so "drugs" is marked for the target "drug". Spaces and
+    punctuation are kept: joining the segments gives back the original text.
     """
     matched = {word.lower() for word in matched_words}
+    target_forms = lemma_forms(target) if target else set()
     segments = []
     for piece in WORD_PATTERN.split(text):
         if not piece:
             continue
-        is_word = WORD_PATTERN.fullmatch(piece) is not None
-        segments.append(Segment(piece, is_word and bool(lemma_forms(piece) & matched)))
+        if WORD_PATTERN.fullmatch(piece) is None:   # spaces and punctuation
+            segments.append(Segment(piece))
+            continue
+        forms = lemma_forms(piece)
+        segments.append(Segment(piece, bool(forms & matched), bool(forms & target_forms)))
     return tuple(segments)
 
 
-def compute_agreement(runs: tuple[AlgorithmRun, ...]) -> bool | None:
-    """Whether all the algorithms that chose a sense chose the same one."""
-    chosen = [run.result.best.sense.id for run in runs if run.result and run.result.best]
-    if len(chosen) < 2:
-        return None
-    return len(set(chosen)) == 1
+def chose_a_sense(run: AlgorithmRun) -> bool:
+    return run.result is not None and run.result.best is not None
+
+
+def group_chosen_senses(runs: tuple[AlgorithmRun, ...]) -> tuple[SenseGroup, ...]:
+    """Group the runs by chosen sense, most chosen first (ties keep the run order)."""
+    runs_by_sense: dict[str, list[AlgorithmRun]] = {}
+    for run in runs:
+        if chose_a_sense(run):
+            runs_by_sense.setdefault(run.result.best.sense.id, []).append(run)
+    groups = [
+        SenseGroup(sense_id, group_runs[0].result.best.sense.definition, tuple(group_runs))
+        for sense_id, group_runs in runs_by_sense.items()
+    ]
+    return tuple(sorted(groups, key=lambda group: -len(group.runs)))
