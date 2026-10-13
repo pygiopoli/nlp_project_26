@@ -1,5 +1,6 @@
 {# The outcome of one algorithm. Expects `run` (services.AlgorithmRun). #}
-<div class="card h-100 shadow-sm">
+{% load wsd_extras %}
+<div class="card h-100 shadow-sm" id="run-{{ run.key }}">
   <div class="card-header d-flex justify-content-between align-items-center">
     <strong>{{ run.label }}</strong>
     <span class="small text-body-secondary">{{ run.elapsed_ms|floatformat:1 }} ms</span>
@@ -18,10 +19,10 @@
     {% else %}
       {% with result=run.result best=run.result.best %}
         {# Chosen sense #}
-        <h3 class="h5 mb-2"><code>{{ best.sense.id }}</code></h3>
+        <h3 class="h5 mb-2"><code>{{ best.sense.id }}</code> <small class="text-body-secondary fw-normal">{{ best.sense.pos|pos_name }}</small></h3>
         <div class="d-flex flex-wrap gap-1 mb-2">
           <span class="badge text-bg-primary">score {{ best.score|floatformat }}</span>
-          <span class="badge text-bg-secondary">POS filter: {{ result.pos_filter|default:"none" }}</span>
+          <span class="badge text-bg-secondary">POS filter: {{ result.pos_filter|pos_name|default:"none" }}</span>
           {% if result.is_fallback %}
             <span class="badge text-bg-warning"
                   title="The best score is 0 or shared by several senses: the first (most frequent) sense in WordNet is chosen.">
@@ -43,6 +44,9 @@
             <span class="text-body-secondary">Sentence:</span>
             {% include "wsd/includes/segments.html" with segments=run.sentence_segments %}
           </p>
+          <p class="small text-body-secondary mb-1">
+            <mark>matched word</mark> · <span class="fw-bold text-primary">target word</span>
+          </p>
           <p class="mb-0">
             <span class="text-body-secondary">Matched words:</span>
             {% for word in best.matched_words %}<span class="badge text-bg-warning me-1">{{ word }}</span>{% endfor %}
@@ -58,6 +62,16 @@
           </table>
         {% endif %}
 
+        {# Score chart, drawn by static/wsd/score_charts.js from the JSON block below #}
+        {% with chart_id="chart-data-"|add:run.key %}
+          <h4 class="h6 mt-3">Scores</h4>
+          <div class="position-relative">
+            <canvas data-chart-source="{{ chart_id }}" role="img"
+                    aria-label="Bar chart of the score of each candidate sense for {{ run.label }}"></canvas>
+          </div>
+          {{ run.chart_data|json_script:chart_id }}
+        {% endwith %}
+
         {# Full ranking #}
         <details class="mt-3">
           <summary>All candidates ({{ result.ranking|length }})</summary>
@@ -70,7 +84,7 @@
                 {% for candidate in result.ranking %}
                   <tr {% if forloop.first %}class="table-primary"{% endif %}>
                     <td>{{ candidate.score|floatformat }}</td>
-                    <td><code>{{ candidate.sense.id }}</code></td>
+                    <td><code>{{ candidate.sense.id }}</code> <span class="small text-body-secondary">{{ candidate.sense.pos|pos_name }}</span></td>
                     <td class="small">{{ candidate.sense.definition }}</td>
                     <td class="small">{{ candidate.matched_words|join:", "|default:"—" }}</td>
                   </tr>

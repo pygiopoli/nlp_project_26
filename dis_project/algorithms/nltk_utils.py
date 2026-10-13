@@ -29,6 +29,17 @@ def lemmatizer() -> WordNetLemmatizer:
     return WordNetLemmatizer()
 
 
+def warm_up() -> None:
+    """Load every lazy resource now, so the first disambiguation is fast.
+
+    Loading WordNet takes a few seconds; afterwards it stays in memory.
+    """
+    wn.ensure_loaded()
+    tokenize_and_tag("Warm up the tokenizer and the tagger.")
+    stop_words()
+    lemmatizer().lemmatize("warming")
+
+
 def penn_to_wn(tag: str) -> str | None:
     """Map a Penn Treebank tag to a WordNet POS (None if WordNet has no such POS)."""
     if tag.startswith("J"):

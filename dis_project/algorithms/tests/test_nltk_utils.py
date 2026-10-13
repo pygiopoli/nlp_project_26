@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from algorithms.base import ScoredSense, Sense
-from algorithms.nltk_utils import find_target, rank, tokenize_and_tag
+from algorithms.nltk_utils import find_target, rank, tokenize_and_tag, warm_up
 
 DRUG_SENTENCE = "I have been prescribed two important drugs today during my visit to clinic"
 
@@ -45,3 +45,8 @@ class RankTests(TestCase):
 
     def test_empty_input(self) -> None:
         self.assertEqual(rank([]), ((), False))
+
+
+class WarmUpTests(TestCase):
+    def test_runs_without_errors(self) -> None:
+        warm_up()

@@ -1,9 +1,10 @@
 {% extends "wsd/base.html" %}
+{% load static %}
 
 {% block content %}
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <form method="get" action="{% url 'wsd:index' %}">
+      <form method="get" action="{% url 'wsd:index' %}" data-loading-form>
         {% for error in form.non_field_errors %}
           <div class="alert alert-danger">{{ error }}</div>
         {% endfor %}
@@ -17,8 +18,13 @@
           <div class="col-md-6">
             {% include "wsd/includes/field.html" with field=form.algorithm %}
           </div>
-          <div class="col-12">
-            <button type="submit" class="btn btn-primary">Disambiguate</button>
+          <div class="col-12 d-flex flex-wrap align-items-center gap-2">
+            <button type="submit" class="btn btn-primary me-2">Disambiguate</button>
+            <span class="small text-body-secondary">Try an example:</span>
+            {% for example in examples %}
+              <a href="{{ example.url }}" class="btn btn-sm btn-outline-secondary"
+                 title="{{ example.sentence }}" data-loading-link>{{ example.target }}</a>
+            {% endfor %}
           </div>
         </div>
       </form>
@@ -33,6 +39,9 @@
 
     <section>
       <h2 class="h5">Results</h2>
+      {% if report.runs|length > 1 %}
+        {% include "wsd/includes/comparison_notice.html" %}
+      {% endif %}
       {# One column for a single algorithm; two columns on wide screens when comparing. #}
       <div class="row row-cols-1 {% if report.runs|length > 1 %}row-cols-lg-2{% endif %} g-3">
         {% for run in report.runs %}
@@ -40,5 +49,16 @@
         {% endfor %}
       </div>
     </section>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'wsd/form_loading.js' %}"></script>
+  {% if report %}
+    {# Chart.js from a CDN, pinned version with SRI hash. #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"
+            integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ"
+            crossorigin="anonymous"></script>
+    <script src="{% static 'wsd/score_charts.js' %}"></script>
   {% endif %}
 {% endblock %}

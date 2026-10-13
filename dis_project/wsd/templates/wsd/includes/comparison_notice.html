@@ -1,0 +1,30 @@
+{# Agreement / disagreement between the algorithms. Expects `report`. #}
+{% if report.agreement is True %}
+  {% with group=report.sense_groups.0 %}
+    <div class="alert alert-success">
+      <strong>The algorithms agree.</strong>
+      {{ group.runs|length }} algorithms chose <code>{{ group.sense_id }}</code>: {{ group.definition }}
+    </div>
+  {% endwith %}
+{% elif report.agreement is False %}
+  <div class="alert alert-warning">
+    <strong>The algorithms disagree.</strong>
+    <ul class="mb-0 mt-2">
+      {% for group in report.sense_groups %}
+        <li>
+          <code>{{ group.sense_id }}</code> ({{ group.definition }}), chosen by
+          {% for run in group.runs %}<a href="#run-{{ run.key }}" class="alert-link">{{ run.label }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% else %}
+  <div class="alert alert-secondary">Fewer than two algorithms chose a sense: there is nothing to compare.</div>
+{% endif %}
+
+{% if report.runs_without_choice %}
+  <p class="small text-body-secondary">
+    Not included in the comparison:
+    {% for run in report.runs_without_choice %}<a href="#run-{{ run.key }}">{{ run.label }}</a> ({% if run.error %}error{% else %}no candidate senses{% endif %}){% if not forloop.last %}, {% endif %}{% endfor %}.
+  </p>
+{% endif %}

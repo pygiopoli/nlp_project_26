@@ -21,5 +21,8 @@
   <main class="container pb-5">
     {% block content %}{% endblock %}
   </main>
+
+  {# Pages that need JavaScript add it here, after the content they act on. #}
+  {% block scripts %}{% endblock %}
 </body>
 </html>
