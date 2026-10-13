@@ -9,8 +9,5 @@ dis_project/.venv
 __pycache__/
 *.pyc
 
-# Django (no database is used, but runserver may create an empty one)
-db.sqlite3
-
 # Local NLTK data
 nltk_data/

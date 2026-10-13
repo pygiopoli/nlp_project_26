@@ -49,7 +49,7 @@ NLTK and `pywsd` generally produce **WordNet synsets**, while MSH-WSD labels ref
 
 | p1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | ext | report |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| ✅ | ✅ |  ✅| ⏳ | ✅ | ❌ | ⏳ | ❌ | ❌ | ❌ |
+| ✅ | ✅ |  ✅| ⏳ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
 
 ## Methods and experiments
 
@@ -207,11 +207,8 @@ Expected dependencies include `nltk`, `pywsd`, `fuzzy`, an edit-distance package
 ### Usage (after implementation)
 
 ```bash
-python scripts/run_baseline.py
-python scripts/run_sample_experiment.py --seed 42
-python scripts/run_full_benchmark.py
-python scripts/run_hybrid_experiment.py --seed 42
-streamlit run app.py
+cd ./dis_project
+python manage.py runserver
 ```
 
 These commands describe the **intended command-line interface**; they will become executable when the corresponding scripts have been created.
