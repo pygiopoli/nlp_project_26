@@ -4,6 +4,7 @@ from django.test import SimpleTestCase
 from django.urls import reverse
 
 from algorithms.base import AlgorithmSpec, WSDResult
+from algorithms.registry import ALGORITHMS
 from wsd.services import DisambiguationReport, disambiguate
 
 DRUG_SENTENCE = "I have been prescribed two important drugs today during my visit to clinic"
@@ -21,6 +22,8 @@ def disambiguate_with_failing_algorithm(
     return disambiguate(sentence, target, ["failing"], registry={"failing": spec})
 
 
+# The MSH-WSD data are not in the repository: SapBERT finds no candidates in these tests.
+@patch("algorithms.sapbert.concept_map", new=lambda: {})
 class IndexViewTests(SimpleTestCase):
     url = reverse("wsd:index")
 
@@ -44,7 +47,7 @@ class IndexViewTests(SimpleTestCase):
         params = {"sentence": DRUG_SENTENCE, "target": "drug", "algorithm": "all"}
         response = self.client.get(self.url, params)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context["report"].runs), 4)
+        self.assertEqual(len(response.context["report"].runs), len(ALGORITHMS))
         self.assertIs(response.context["report"].agreement, False)
 
     def test_invalid_form_shows_errors_and_no_result(self) -> None:
@@ -58,7 +61,7 @@ class IndexViewTests(SimpleTestCase):
         params = {"sentence": "He said xyzzy loudly", "target": "xyzzy", "algorithm": "all"}
         response = self.client.get(self.url, params)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "No candidate senses.", count=4)
+        self.assertContains(response, "No candidate senses.", count=len(ALGORITHMS))
 
     def test_evidence_is_highlighted(self) -> None:
         params = {"sentence": "I went to the bank to deposit my money", "target": "bank",

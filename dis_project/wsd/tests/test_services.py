@@ -125,7 +125,8 @@ class BuildChartDataTests(SimpleTestCase):
 
 class SenseGroupTests(SimpleTestCase):
     def test_groups_most_chosen_first(self) -> None:
-        report = disambiguate(DRUG_SENTENCE, "drug", list(ALGORITHMS))
+        keys = ["lesk", "lesk_pos", "extended_lesk", "extended_lesk_pos"]
+        report = disambiguate(DRUG_SENTENCE, "drug", keys)
         groups = [(g.sense_id, [r.key for r in g.runs]) for g in report.sense_groups]
         self.assertEqual(groups, [
             ("drug.n.01", ["lesk_pos", "extended_lesk", "extended_lesk_pos"]),

@@ -40,9 +40,8 @@ This README covers only setup and usage.
 │   ├── algorithms/             # WSD algorithms, independent of Django (+ tests)
 │   ├── wsd/                    # Django app: form, views, services, templates, static JS (+ tests)
 │   ├── manage.py
-│   └── requirements.txt        # GUI dependencies only
-├── requirements.txt            # Tasks 1–7
-├── requirements-bert.txt       # requirements.txt + SapBERT extension
+│   └── requirements.txt        # GUI dependencies only (Django, NLTK, torch, transformers)
+├── requirements.txt            # everything (includes dis_project/requirements.txt)
 └── project_31.md               # assignment
 ```
 
@@ -54,7 +53,7 @@ This README covers only setup and usage.
   The extension also downloads the SapBERT model, and the GUI loads Bootstrap and Chart.js from a CDN.
 - **A UMLS Terminology Services (UTS) account**, needed to download MSH-WSD and to get a UMLS API key.
   The account is free, but NLM must approve the license request, which can take a few days. Tasks 1, 3
-  and 5 and the GUI work without it.
+  and 5 and the GUI work without it, except the GUI's SapBERT algorithm.
 
 ## Setup
 
@@ -81,13 +80,11 @@ With conda, use `conda create -n nlp python=3.11` and then `conda activate nlp`.
 ### 3. Install the dependencies
 
 ```bash
-pip install -r requirements.txt         # Tasks 1–7: notebooks, full-dataset pipeline and web GUI
-pip install -r requirements-bert.txt    # same as above + torch and transformers (SapBERT extension)
+pip install -r requirements.txt     # notebooks, full-dataset pipeline, SapBERT extension and web GUI
 ```
 
-`requirements-bert.txt` includes `requirements.txt`, so you need only one of the two commands. To run only
-the GUI, `pip install -r dis_project/requirements.txt` is enough. The versions are pinned to the ones the
-code was tested with.
+To run only the GUI, `pip install -r dis_project/requirements.txt` is enough. Both files include torch and
+transformers, which take about 2 GB. The versions are pinned to the ones the code was tested with.
 
 `pywsd` 1.3.0 uses the [`wn`](https://github.com/goodmami/wn) package with **Open English WordNet 2024**,
 while NLTK uses **WordNet 3.0**. Both are needed: the gold-standard mapping uses NLTK synset names, and
@@ -202,8 +199,8 @@ python run_full_dataset.py results       # prints the tables → results/task4_r
 
 Before running `scripts/bert_extention/bert_wsd.ipynb`:
 
-1. Install `requirements-bert.txt` (step 3 of Setup). The first cell of the notebook runs `%pip install` for
-   the same packages; skip it if they are already installed.
+1. Install `requirements.txt` (step 3 of Setup). The first cell of the notebook runs `%pip install` for the
+   same packages; skip it if they are already installed.
 2. Run `python run_full_dataset.py umls` to create `data/umls_cui_info.json`. The notebook builds each
    sense description from the names and definitions in this file.
 
@@ -229,7 +226,7 @@ also works.
 
 ```bash
 cd dis_project
-pip install -r requirements.txt     # Django, NLTK (skip if already installed)
+pip install -r requirements.txt     # Django, NLTK, torch, transformers (skip if already installed)
 python -m algorithms.nltk_data      # NLTK packages used by the app
 python manage.py runserver
 ```
@@ -248,7 +245,17 @@ Then open <http://127.0.0.1:8000/>.
 | `lesk_pos` | Standard Lesk, candidates limited to the POS of the target |
 | `extended_lesk` | Extended Lesk: definition, examples and related synsets |
 | `extended_lesk_pos` | Extended Lesk, candidates limited to the POS of the target |
+| `wu_palmer` | Wu–Palmer similarity with the senses of the context words (Task 3) |
+| `wu_palmer_phonetic` | 0.5 · Wu–Palmer + 0.5 · phonetic similarity (Task 6) |
+| `sapbert` | SapBERT embeddings, choosing among the UMLS senses (CUIs) of MSH-WSD (extension) |
 | `all` | Runs every registered algorithm and compares them |
+
+The WordNet-based algorithms work with any word. `sapbert` instead works only on the ambiguous words of
+MSH-WSD (e.g. *cold*, *ventricle*), and gives no candidates for other words. It needs two files that are
+not in the repository: `data/MSHCorpus/benchmark_mesh.txt` (step 5 of Setup) and `data/umls_cui_info.json`
+(`run_full_dataset.py umls`). The first time an MSH-WSD word is disambiguated, the app downloads and loads
+the SapBERT model, which takes a while. Because its senses are UMLS concepts, its choice never matches the
+WordNet senses of the other algorithms in the comparison.
 
 ### Configuration
 
@@ -268,7 +275,8 @@ python manage.py test               # every test (algorithms + wsd)
 python manage.py test algorithms    # only the algorithm tests
 ```
 
-The tests need the NLTK data from `python -m algorithms.nltk_data`.
+The tests need the NLTK data from `python -m algorithms.nltk_data`. They don't need the MSH-WSD data, but the
+first run downloads the SapBERT model.
 
 ### Adding an algorithm
 
@@ -287,7 +295,8 @@ need to change anything else.
 | Error about `oewn:2024` when importing `wsd_utils` or `pywsd` | Run `python -c "import wn; wn.download('oewn:2024')"`. |
 | `FileNotFoundError` for `data/MSHCorpus/benchmark_mesh.txt` | The corpus is missing or in the wrong place (see step 5). |
 | `ModuleNotFoundError: No module named 'wsd_utils'` | The notebook or script is not running from its own folder. |
-| `FileNotFoundError` for `data/umls_cui_info.json` | Run `python run_full_dataset.py umls` from `scripts/full_dataset`. |
+| `FileNotFoundError` for `data/umls_cui_info.json` (notebook, or SapBERT card in the GUI) | Run `python run_full_dataset.py umls` from `scripts/full_dataset`. |
+| SapBERT card shows `FileNotFoundError` for `benchmark_mesh.txt` | The MSH-WSD corpus is missing (see step 5). |
 | PowerShell blocks `Activate.ps1` | Run `Set-ExecutionPolicy -Scope Process RemoteSigned`, then activate again. |
 | GUI page without styling or charts | The browser cannot reach the CDN, or `DJANGO_DEBUG=0` is set and `runserver` was started without `--insecure`. |
 

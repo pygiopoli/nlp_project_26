@@ -11,8 +11,8 @@ from dataclasses import dataclass, field
 class Sense:
     """A candidate sense of the target word."""
 
-    id: str                     # e.g. "drug.n.01" (NLTK) or "oewn-03252323-n" (pywsd)
-    pos: str                    # WordNet POS: "n", "v", "a", "s" or "r"
+    id: str                     # e.g. "drug.n.01" (WordNet) or "C0018827" (UMLS CUI)
+    pos: str                    # WordNet POS: "n", "v", "a", "s" or "r"; "" for UMLS concepts
     definition: str
     examples: tuple[str, ...] = ()
 
