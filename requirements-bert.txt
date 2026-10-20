@@ -1,0 +1,5 @@
+# SapBERT extension (scripts/bert_extention/bert_wsd.ipynb), on top of the base requirements
+-r requirements.txt
+torch==2.14.0
+transformers==5.17.0
+ipywidgets          # progress bars in Jupyter

@@ -1,245 +1,310 @@
-# Project 31 — Word Sense Disambiguation in Medical Context
+# Word Sense Disambiguation in Medical Context
 
-> A comparative study of knowledge-based Word Sense Disambiguation (WSD) algorithms for biomedical and clinical text, with a proposed hybrid semantic–phonetic approach.
+Knowledge-based Word Sense Disambiguation (WSD) experiments on biomedical text, evaluated on the
+[MSH-WSD](https://lhncbc.nlm.nih.gov/ii/areas/WSD/collaboration.html) benchmark, plus a Django web app
+that runs and compares WSD algorithms on a user-supplied sentence.
 
-**Status:** In development · **Language:** Python · **Domain:** Biomedical Natural Language Processing
+The assignment is in [project_31.md](project_31.md). Methods, results and discussion are in the
+[technical report](https://www.overleaf.com/project/6ac8dfcb5043816f71cb841f/share#925442360e3c2fa9925fb68716f5c4f14e8b7d8c9e26725a).
+This README covers only setup and usage.
 
-Technical Report on the project: [Overleaf link](https://www.overleaf.com/project/6ac8dfcb5043816f71cb841f/share#925442360e3c2fa9925fb68716f5c4f14e8b7d8c9e26725a)
+## Contents
 
-## Overview
+| Task | Description | Location |
+|---|---|---|
+| 1 | NLTK Lesk on the example sentence ("drug") | [scripts/p1_2_lesk/drug_disamb.ipynb](scripts/p1_2_lesk/drug_disamb.ipynb) |
+| 2 | NLTK Lesk on 10 acronyms + 10 terms of MSH-WSD, manual CUI → WordNet mapping | [scripts/p1_2_lesk/task_2.ipynb](scripts/p1_2_lesk/task_2.ipynb) |
+| 3 | pywsd algorithms on example sentences | [scripts/p3_4_pywsd/task_3.ipynb](scripts/p3_4_pywsd/task_3.ipynb) |
+| 4 | pywsd algorithms on MSH-WSD | [scripts/p3_4_pywsd/task_4.ipynb](scripts/p3_4_pywsd/task_4.ipynb) |
+| 5 | Soundex + Levenshtein phonetic distance matrices | [scripts/p5_6_phonetic/p_distance.ipynb](scripts/p5_6_phonetic/p_distance.ipynb) |
+| 6 | Wu–Palmer + phonetic similarity on MSH-WSD | [scripts/p5_6_phonetic/task_6.ipynb](scripts/p5_6_phonetic/task_6.ipynb) |
+| 4 + 6 | Tasks 4 and 6 on the full dataset, with an automatic CUI → WordNet mapping | [scripts/full_dataset/run_full_dataset.py](scripts/full_dataset/run_full_dataset.py) |
+| 7 | Web GUI (Django) | [dis_project/](dis_project/) |
+| Extension | SapBERT embedding-based WSD over UMLS senses | [scripts/bert_extention/bert_wsd.ipynb](scripts/bert_extention/bert_wsd.ipynb) |
 
-Medical language contains many ambiguous terms and acronyms. The same expression may refer to different biomedical concepts depending on its surrounding context. **Word Sense Disambiguation (WSD)** identifies the intended meaning of a target word or expression in a sentence or document.
-
-This project investigates classical dictionary-based and semantic-similarity approaches to WSD, evaluates them on the **MSH-WSD** biomedical benchmark, and explores whether adding **phonetic similarity** to a Wu–Palmer-based method can improve disambiguation.
-
-The project covers eight tasks: (1) a baseline NLTK Lesk example; (2) MSH-WSD evaluation on sampled terms and acronyms; (3) a comparison of `pywsd` algorithms; (4) an extended evaluation on the dataset; (5) phonetic-distance analysis; (6) a new combined semantic–phonetic scorer; (7) an interactive interface; and (8) a literature review and critical discussion.
-
-## Research questions
-
-1. How reliable is the standard Lesk algorithm when applied to a simple medically relevant sentence?
-2. Do knowledge-based WSD methods perform differently on biomedical **regular terms** and **acronyms**?
-3. How do overlap-based, taxonomy-based, information-content-based, and lemma-frequency-based methods compare?
-4. Can phonetic information complement Wu–Palmer semantic similarity, and under which conditions is it useful?
-5. What limitations arise when general-purpose WordNet methods are evaluated against biomedical concept identifiers?
-
-## Dataset: MSH-WSD
-
-The **MSH-WSD** benchmark was introduced by Jimeno-Yepes, McInnes, and Aronson (2011). It contains **203 ambiguous expressions**: **106 abbreviations**, **88 regular terms**, and **9 mixed cases**. Contexts are drawn from MEDLINE, and senses are labeled with **UMLS Concept Unique Identifiers (CUIs)**.
-
-For the sampled experiment, we will randomly choose **10 acronyms** and **10 regular terms**, using a fixed random seed. The full evaluation will report results separately for **all 106 abbreviation entries** and **all 88 regular-term entries**. Mixed entries will be analyzed separately or explicitly excluded from the two headline averages.
-
-**Data-access note:** The [Yarn repository](https://github.com/clips/yarn) referenced in the assignment provides biomedical concept-disambiguation software and example input formats; **it does not bundle the full MSH-WSD dataset or the required UMLS resources**. Dataset acquisition, permissions, and any UMLS licensing requirements must therefore be handled separately. Do not commit restricted datasets or licensed terminology resources to this repository.
-
-### Sense alignment (important)
-
-NLTK and `pywsd` generally produce **WordNet synsets**, while MSH-WSD labels refer to **UMLS CUIs**. These are different sense inventories: their identifiers cannot be compared directly. Before calculating accuracy, the evaluation pipeline must define and document a defensible mapping between WordNet predictions and MSH-WSD candidate concepts, or instead use a concept-aware adaptation that scores descriptions associated with the candidate CUIs. **Unmapped and unscorable cases must be counted and reported**, not silently treated as correct.
-
-## Workload division
-| | p1 | p2 | p3 | p4 | p5 | p6 | p7 | p8 | possible extension | report |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **fralo** | | x | x | | | x | | x | x | |
-| **pygio** | x | | | x | x | | x | | | x |
-
-# Progress
-
-### Stato di Completamento
-
-**Legenda:**
-✅ Done | ⏳ Work in progress | ❌ Not started
-
-| p1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | ext | report |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| ✅ | ✅ |  ✅| ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-
-## Methods and experiments
-
-### 1. Baseline: standard Lesk in NLTK
-
-Example sentence:
-
-> I have been prescribed two important drugs today during my visit to clinic.
-
-The target is **`drug`** (with the plural surface form **`drugs`** in the sentence). We will tokenize the sentence, apply the standard NLTK Lesk implementation, and inspect the selected WordNet sense, its definition, and its overlap with the sentence context.
-
-Lesk estimates the intended sense by comparing the words in a candidate sense's gloss with the surrounding sentence. Its strengths are simplicity and interpretability; its weaknesses include short glosses, vocabulary mismatch, limited medical coverage, and sensitivity to preprocessing. The result is **not assumed correct in advance**: it will be compared with the intended medication-related sense.
-
-### 2. Sampled MSH-WSD evaluation
-
-- Fix and record a random seed for reproducibility.
-- Select 10 abbreviation entries and 10 regular-term entries (not just 20 individual sentences).
-- Evaluate each available labeled context for those entries using a Lesk-based baseline.
-- Apply a consistent preprocessing policy and a documented sense-alignment strategy.
-- Report the accuracy for each entry and the **macro-average accuracy** separately for abbreviations and regular terms.
-
-### 3. Comparison of existing WSD algorithms
-
-Using [pywsd](https://github.com/alvations/pywsd), and small documented wrappers where necessary, we will run the following methods on a sentence containing a target word:
-
-| Method | Main idea |
-|---|---|
-| Original Lesk | Overlap between context and dictionary gloss |
-| Adapted Lesk | Expanded overlap using related glosses |
-| Simple/extended Lesk with hypernyms and hyponyms | Include broader and narrower concepts |
-| Cosine Lesk | Vector-based similarity between context and sense descriptions |
-| Path similarity | WordNet taxonomy distance |
-| Information-content similarity | Taxonomy plus corpus-derived information content |
-| Highest lemma count | Most-frequent-sense proxy based on lemma counts |
-| Wu–Palmer similarity | Similarity based on depth and lowest common subsumer in a taxonomy |
-
-*Note:* Method availability, exact functions, and version-specific behavior will be verified against the installed `pywsd` version. Not every method listed above necessarily uses the same interface or qualifies as a Lesk variant.
-
-### 4. Full dataset benchmark
-
-Run each selected method over all evaluable contexts for the 106 abbreviation and 88 regular-term entries. Record prediction, gold CUI, match/mismatch, mapping status, and processing time where appropriate. Report the same metrics and evaluation protocol across algorithms, including coverage and missing predictions.
-
-### 5. Phonetic similarity
-
-We will use the Python **`fuzzy`** library to derive phonetic encodings (for example, Double Metaphone, subject to library compatibility) and an edit-distance function to compare the resulting encodings.
-
-For words or encodings `a` and `b`, one possible normalized similarity is:
-
-\[
-P(a,b) = 1 - \frac{d(e(a), e(b))}{\max(|e(a)|, |e(b)|)}
-\]
-
-where `e` denotes a phonetic encoding and `d` denotes Levenshtein edit distance. If both encodings are empty, the implementation must define an explicit fallback rather than divide by zero.
-
-The experiment will create a **symmetric pairwise phonetic-distance matrix** for the words in the example sentence in Task 1, accompanied by a heatmap. The matrix must state whether it displays **raw edit distance** (lower means more similar) or **normalized similarity** (higher means more similar).
-
-### 6. Proposed hybrid: Wu–Palmer + phonetic matching
-
-We propose combining a normalized Wu–Palmer semantic score `W` and a normalized phonetic score `P` through the required convex combination:
-
-\[
-S_{hybrid}(c,s) = 0.5\,W(c,s) + 0.5\,P(c,s)
-\]
-
-where `c` is the observed context and `s` is a candidate sense. Both components will be normalized to **[0, 1]**. The system will choose the candidate with the highest combined score.
-
-**Design requirement:** Wu–Palmer operates on **WordNet synsets**, whereas phonetic encoders operate on **strings**. The implementation must explicitly define how the context is converted to comparison synsets, how each candidate sense is represented as text, how the two scores are aggregated, and how missing semantic/phonetic values are handled. For MSH-WSD, a CUI-to-WordNet alignment or an explicitly documented biomedical concept-scoring adaptation is needed. The 0.5/0.5 weights are specified by the assignment, **not learned or claimed to be optimal**.
-
-Evaluate the hybrid on a selected, reproducible subset of MSH-WSD and compare it with the corresponding **Wu–Palmer-only baseline on exactly the same instances**. Report coverage and analyze both successes and failures. Since sound similarity does not necessarily imply semantic similarity, improvement is a hypothesis to test rather than a guaranteed result.
-
-### 7. Interactive user interface
-
-A planned **Streamlit** interface will allow users to:
-
-- Enter a sentence or short biomedical passage and specify the ambiguous target word.
-- Select one or more available WSD algorithms.
-- View predicted senses, glosses or medical concept descriptions, and similarity scores.
-- Compare algorithms side by side.
-- Inspect a phonetic-distance matrix / heatmap.
-- Explore the hybrid semantic and phonetic score components.
-- View experiment summaries and per-category benchmark results.
-
-### 8. Literature review and critical analysis
-
-The final report will relate the implementation to the original Lesk method, WordNet semantic similarity, biomedical sense inventories, MSH-WSD benchmark design, and more recent concept-representation methods. It will critically examine sense-inventory mismatch, acronym ambiguity, corpus/domain shift, incomplete lexical coverage, dataset labeling assumptions, runtime, reproducibility, and the limitations of phonetic signals for semantic interpretation.
-
-## Evaluation protocol
-
-For each ambiguous entry `t`:
-
-\[
-Accuracy(t) = \frac{\#\text{ correct predictions for }t}{\#\text{ evaluated instances for }t}
-\]
-
-Primary headline results use the **macro-average** across eligible entries in each category:
-
-\[
-MacroAccuracy(T) = \frac{1}{|T|}\sum_{t\in T} Accuracy(t)
-\]
-
-We will also report **micro-accuracy** (correct predictions divided by evaluated instances across the category), prediction coverage, the number of excluded/unmapped instances, and per-entry accuracy. Explicitly defined policies will distinguish a full-population accuracy (where abstentions count as incorrect) from accuracy conditional on a prediction, so algorithms with low coverage are not unfairly favored.
-
-For meaningful comparisons, all algorithms will run on the **same eligible examples**, with consistent preprocessing, candidate senses, gold-label alignment, random seed, and aggregation rules. Any use of information-content corpora, medical ontologies, or extra gloss resources will be recorded.
-
-## Planned repository structure
+## Repository layout
 
 ```text
 .
-├── README.md
-├── requirements.txt
-├── .gitignore
-├── app.py                      # Streamlit interface
-├── data/
-│   ├── README.md               # Instructions for obtaining MSH-WSD
-│   └── .gitkeep
-├── src/
-│   ├── __init__.py
-│   ├── preprocessing.py        # Tokenization, normalization, lemmatization
-│   ├── dataset.py              # Dataset parsing, sampling and labels
-│   ├── sense_alignment.py      # WordNet ↔ UMLS sense handling
-│   ├── lesk_baseline.py        # NLTK Lesk baseline
-│   ├── pywsd_methods.py        # Comparison algorithms
-│   ├── phonetic.py             # Encoding, edit distance and matrices
-│   ├── hybrid_wsd.py           # Wu–Palmer + phonetic scorer
-│   └── evaluation.py           # Predictions, metrics and coverage
+├── data/                       # the MSH-WSD corpus is not tracked into the repository beause of copyright
 ├── scripts/
-│   ├── run_baseline.py
-│   ├── run_sample_experiment.py
-│   ├── run_full_benchmark.py
-│   └── run_hybrid_experiment.py
-├── tests/
-├── results/                    # Tables and figures (generated)
-└── docs/                       # Report, methodology and references
+│   ├── wsd_utils.py            # shared: MSH-WSD loader, acronym/term split, CUI → WordNet
+│   │                           #   mapping, pywsd → NLTK sense translation, sampling, metrics
+│   ├── p1_2_lesk/              # Tasks 1–2
+│   ├── p3_4_pywsd/             # Tasks 3–4 (+ cached predictions)
+│   ├── p5_6_phonetic/          # Tasks 5–6, utils.py (Soundex, Levenshtein)
+│   ├── full_dataset/           # command-line pipeline for Tasks 4 and 6 on all words, results/
+│   └── bert_extention/         # SapBERT extension (+ cached predictions)
+├── dis_project/                # Django web app (Task 7)
+│   ├── config/                 # settings, root URLconf, WSGI/ASGI
+│   ├── algorithms/             # WSD algorithms, independent of Django (+ tests)
+│   ├── wsd/                    # Django app: form, views, services, templates, static JS (+ tests)
+│   ├── manage.py
+│   └── requirements.txt        # GUI dependencies only
+├── requirements.txt            # Tasks 1–7
+├── requirements-bert.txt       # requirements.txt + SapBERT extension
+└── project_31.md               # assignment
 ```
 
-> This is the **target structure**, not a statement that these files have already been implemented. The tree and commands below will be updated as development proceeds.
+## Prerequisites
 
-## Installation (planned)
+- **Python 3.11 or newer.** The pinned pandas and numpy versions require 3.11. The code was developed on
+  Python 3.11 and 3.13.
+- **Internet access on the first run.** The code downloads the NLTK data and Open English WordNet 2024.
+  The extension also downloads the SapBERT model, and the GUI loads Bootstrap and Chart.js from a CDN.
+- **A UMLS Terminology Services (UTS) account**, needed to download MSH-WSD and to get a UMLS API key.
+  The account is free, but NLM must approve the license request, which can take a few days. Tasks 1, 3
+  and 5 and the GUI work without it.
 
-Use a supported Python 3 environment; dependency versions will be pinned after compatibility testing, particularly for older `pywsd` and `fuzzy` releases.
+## Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/pygiopoli/nlp_project_26.git
+cd nlp_project_26
+```
+
+### 2. Create a virtual environment
 
 ```bash
 python -m venv .venv
-# Linux / macOS:
-source .venv/bin/activate
-# Windows PowerShell:
-# .venv\Scripts\Activate.ps1
 
-pip install -r requirements.txt
-python -m nltk.downloader wordnet omw-1.4 punkt punkt_tab wordnet_ic
+# Linux / macOS
+source .venv/bin/activate
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
 ```
 
-Expected dependencies include `nltk`, `pywsd`, `fuzzy`, an edit-distance package, `numpy`, `pandas`, `matplotlib`, `seaborn` (optional), and `streamlit`. The final tested versions and any platform-specific installation steps will be documented in `requirements.txt`.
+With conda, use `conda create -n nlp python=3.11` and then `conda activate nlp`.
 
-### Usage (after implementation)
+### 3. Install the dependencies
 
 ```bash
-cd ./dis_project
+pip install -r requirements.txt         # Tasks 1–7: notebooks, full-dataset pipeline and web GUI
+pip install -r requirements-bert.txt    # same as above + torch and transformers (SapBERT extension)
+```
+
+`requirements-bert.txt` includes `requirements.txt`, so you need only one of the two commands. To run only
+the GUI, `pip install -r dis_project/requirements.txt` is enough. The versions are pinned to the ones the
+code was tested with.
+
+`pywsd` 1.3.0 uses the [`wn`](https://github.com/goodmami/wn) package with **Open English WordNet 2024**,
+while NLTK uses **WordNet 3.0**. Both are needed: the gold-standard mapping uses NLTK synset names, and
+`wsd_utils.to_nltk` converts pywsd answers to those names through WordNet sense keys. Other pywsd
+releases have not been tested.
+
+### 4. Download the lexical resources
+
+```bash
+python -m nltk.downloader wordnet omw-1.4 stopwords punkt punkt_tab averaged_perceptron_tagger_eng
+python -c "import wn; wn.download('oewn:2024')"
+```
+
+| Resource | Default location | Override |
+|---|---|---|
+| NLTK data | `~/nltk_data` (Linux/macOS), `%APPDATA%\nltk_data` (Windows) | `NLTK_DATA` |
+| Open English WordNet 2024 | `~/.wn_data` | `WN_DATA_DIR` |
+
+pywsd includes the information-content files for the Resnik, Jiang–Conrath and Lin measures, so you
+don't need to download them.
+
+### 5. Get the MSH-WSD corpus
+
+1. Request a UMLS license and create a UTS account at <https://uts.nlm.nih.gov/uts/>.
+2. Download the MSH WSD data set from the
+   [NLM WSD page](https://lhncbc.nlm.nih.gov/ii/areas/WSD/collaboration.html).
+3. Extract the archive so that the files end up in `data/MSHCorpus/` at the repository root:
+
+```text
+data/
+├── MSHCorpus/
+│   ├── benchmark_mesh.txt            # word → candidate CUIs
+│   ├── README.txt
+│   └── <word>_pmids_tagged.arff      # one file per ambiguous word (203 files)
+└── umls_cui_info.json                # generated later by `run_full_dataset.py umls`
+```
+
+`scripts/wsd_utils.py` finds the corpus relative to its own location (`DATA_DIR`), so the path must match
+this layout exactly. `data/` is in `.gitignore`: the corpus is licensed under UMLS terms and must not be
+committed.
+
+### 6. Get a UMLS API key (optional)
+
+After signing in to UTS, copy the API key from your profile page. The key is entered at runtime with
+`getpass` and is never written to disk. Two places use it:
+
+- `task_2.ipynb` uses it only to show the UMLS name of each CUI. Without a valid key the names are
+  empty, but the evaluation still runs.
+- `run_full_dataset.py umls` uses it to download names and definitions for all CUIs. Both the full-dataset
+  pipeline and the SapBERT extension need this step.
+
+## Running the notebooks
+
+```bash
+jupyter lab
+```
+
+- **Run each notebook from its own folder.** This is the default in Jupyter and in VS Code. The notebooks
+  import `wsd_utils` with `sys.path.append("..")`, and they read and write their caches with relative
+  paths.
+- Run the cells from top to bottom.
+
+| Notebook | Needs MSH-WSD | Needs UMLS | Cache file |
+|---|:---:|:---:|---|
+| `p1_2_lesk/drug_disamb.ipynb` | | | |
+| `p1_2_lesk/task_2.ipynb` | ✓ | API key (optional) | |
+| `p3_4_pywsd/task_3.ipynb` | | | |
+| `p3_4_pywsd/task_4.ipynb` | ✓ | | `task4_predictions.json` |
+| `p5_6_phonetic/p_distance.ipynb` | | | |
+| `p5_6_phonetic/task_6.ipynb` | ✓ | | `task6_predictions.json` |
+| `bert_extention/bert_wsd.ipynb` | ✓ | `data/umls_cui_info.json` | `bert_predictions.json` |
+
+**Caches.** The pywsd similarity methods and SapBERT are slow, so the evaluation loops save their predictions
+to a JSON file next to the notebook after every word. Words already in the file are skipped. The repository
+includes these files, so the result tables come straight from the saved predictions. Delete a cache file to
+recompute it from scratch. `task_6.ipynb` also reads `../p3_4_pywsd/task4_predictions.json`, which is its
+Wu–Palmer baseline.
+
+**Shared parameters** in `scripts/wsd_utils.py`:
+
+| Name | Value | Meaning |
+|---|---|---|
+| `WINDOW` | 10 | context words on each side of the target (Tasks 4, 6 and the extension) |
+| `N_PER_SENSE` | 10 | abstracts sampled for each sense (sampling seed 0) |
+| `MAPPING` | 39 words | manual CUI → WordNet mapping (both Task 2 selections, seeds 42 and 7) |
+
+## Full-dataset pipeline (Tasks 4 and 6 on all words)
+
+Run it from its folder, because it uses relative paths:
+
+```bash
+cd scripts/full_dataset
+
+python run_full_dataset.py info          # number of words and CUIs (quick check)
+python run_full_dataset.py umls          # prompts for the UMLS API key → data/umls_cui_info.json
+python run_full_dataset.py mapping [N]   # automatic CUI → WordNet mapping → results/auto_mapping.json
+                                         #   N = minimum word overlap (default 4)
+python run_full_dataset.py task4         # Task 4 methods → results/task4_predictions.json
+python run_full_dataset.py task6         # Wu–Palmer + phonetic → results/task6_predictions.json
+python run_full_dataset.py results       # prints the tables → results/task4_results.csv, task6_results.csv
+```
+
+- Each step reads the output of the previous ones.
+- `umls` saves every 20 CUIs, and `task4` and `task6` save after every word. You can interrupt them and
+  run them again to resume.
+- `results` also works on partial predictions.
+- The repository already includes `results/` (mapping and predictions), so `results` works without running
+  the earlier steps. `data/umls_cui_info.json` is not tracked, though: run `umls` locally if you need to
+  rebuild the mapping or use the SapBERT extension.
+
+## SapBERT extension
+
+Before running `scripts/bert_extention/bert_wsd.ipynb`:
+
+1. Install `requirements-bert.txt` (step 3 of Setup). The first cell of the notebook runs `%pip install` for
+   the same packages; skip it if they are already installed.
+2. Run `python run_full_dataset.py umls` to create `data/umls_cui_info.json`. The notebook builds each
+   sense description from the names and definitions in this file.
+
+On the first run, the notebook downloads the model `cambridgeltl/SapBERT-from-PubMedBERT-fulltext`
+(about 0.4 GB) to the Hugging Face cache (`~/.cache/huggingface`, override with `HF_HOME`). The code
+does not move the model to a GPU, so it runs on CPU.
+
+## Web GUI (Task 7)
+
+The GUI is a Django 5.2 app with no database. The user enters a sentence and a target word, chooses one
+algorithm or all of them, and sees, for each algorithm:
+
+- the chosen sense;
+- the full ranking of candidate senses, with a score chart;
+- the overlapping words highlighted in the sentence and in the definition;
+- the POS tags;
+- whether the algorithms agree.
+
+### Run
+
+The project root environment works. A separate environment that has only `dis_project/requirements.txt`
+also works.
+
+```bash
+cd dis_project
+pip install -r requirements.txt     # Django, NLTK (skip if already installed)
+python -m algorithms.nltk_data      # NLTK packages used by the app
 python manage.py runserver
 ```
 
-These commands describe the **intended command-line interface**; they will become executable when the corresponding scripts have been created.
+Then open <http://127.0.0.1:8000/>.
 
-## Results
+- You don't need to run `migrate`, because `DATABASES` is empty and no app uses models.
+- When `runserver` starts, WordNet and the POS tagger load in the serving process (`WsdConfig.ready`).
+  Startup takes a few seconds, but the first request is fast.
+- The form uses GET, so each result has a shareable URL, for example
+  `/?sentence=The+patient+has+a+cold&target=cold&algorithm=all`.
 
-**No experimental accuracy values are reported yet.** The following summary will be populated from actual reproducible runs:
+| `algorithm` | Algorithm |
+|---|---|
+| `lesk` | Standard Lesk (same scoring as `nltk.wsd.lesk`, with the full ranking) |
+| `lesk_pos` | Standard Lesk, candidates limited to the POS of the target |
+| `extended_lesk` | Extended Lesk: definition, examples and related synsets |
+| `extended_lesk_pos` | Extended Lesk, candidates limited to the POS of the target |
+| `all` | Runs every registered algorithm and compares them |
 
-| Method | Regular terms: macro accuracy | Acronyms: macro accuracy | Coverage |
-|---|---:|---:|---:|
-| Standard Lesk | TBD | TBD | TBD |
-| Adapted Lesk | TBD | TBD | TBD |
-| Extended Lesk | TBD | TBD | TBD |
-| Cosine Lesk | TBD | TBD | TBD |
-| Path similarity | TBD | TBD | TBD |
-| Information-content similarity | TBD | TBD | TBD |
-| Highest lemma count | TBD | TBD | TBD |
-| Wu–Palmer baseline | TBD | TBD | TBD |
-| Wu–Palmer + phonetic (0.5/0.5) | TBD | TBD | TBD |
+### Configuration
 
-The final analysis will include per-term examples, error categories, runtime comparisons, and a focused ablation comparing the hybrid model with the semantic-only version.
+| Environment variable | Default | Effect |
+|---|---|---|
+| `DJANGO_SECRET_KEY` | development-only key | Secret key |
+| `DJANGO_DEBUG` | `1` | `0`, `false` or `no` turns debug off. Without debug, `runserver` stops serving static files, so start it with `--insecure` to keep the charts. |
 
-## References
+`ALLOWED_HOSTS` accepts only `127.0.0.1` and `localhost`. The app is meant for local use with `runserver`
+and is not set up for deployment.
 
-1. Lesk, M. (1986). *Automatic sense disambiguation using machine readable dictionaries: How to tell a pine cone from an ice cream cone*. Proceedings of SIGDOC '86. https://doi.org/10.1145/318723.318728
-2. Orevaoghene, A (2023). *Do All Languages Cost the Same? Tokenization in the Era of Commercial Language Models* https://arxiv.org/abs/2305.13707
+### Tests
 
-## Limitations and responsible use
+```bash
+cd dis_project
+python manage.py test               # every test (algorithms + wsd)
+python manage.py test algorithms    # only the algorithm tests
+```
 
-This is an **academic NLP research project**, not a clinical decision-support or diagnostic tool. General-purpose WordNet senses may not correspond directly to biomedical/UMLS concepts. MSH-WSD labels derive from an automatic indexing-based construction method, and the dataset may not capture all real-world clinical ambiguity. Phonetic resemblance also does not imply shared meaning. Results must therefore be interpreted with reference to domain coverage, label alignment, and the evaluated population.
+The tests need the NLTK data from `python -m algorithms.nltk_data`.
 
-## License and attribution
+### Adding an algorithm
 
-A license for the **project's own code** will be selected before public release. External packages and data retain their respective licenses and access conditions. Cite the MSH-WSD paper and any third-party code or resources actually used in experiments.
+1. In `algorithms/`, write a function `(sentence: str, target: str) -> WSDResult` (see
+   `algorithms/base.py`). The `algorithms` package must not import Django.
+2. Add an `AlgorithmSpec` for it to `REGISTERED_SPECS` in `algorithms/registry.py`.
+
+The form, the comparison mode and the result page find new algorithms through the registry, so you don't
+need to change anything else.
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `LookupError: Resource ... not found` from NLTK | Run the `nltk.downloader` command from step 4 (or `python -m algorithms.nltk_data` for the GUI). |
+| Error about `oewn:2024` when importing `wsd_utils` or `pywsd` | Run `python -c "import wn; wn.download('oewn:2024')"`. |
+| `FileNotFoundError` for `data/MSHCorpus/benchmark_mesh.txt` | The corpus is missing or in the wrong place (see step 5). |
+| `ModuleNotFoundError: No module named 'wsd_utils'` | The notebook or script is not running from its own folder. |
+| `FileNotFoundError` for `data/umls_cui_info.json` | Run `python run_full_dataset.py umls` from `scripts/full_dataset`. |
+| PowerShell blocks `Activate.ps1` | Run `Set-ExecutionPolicy -Scope Process RemoteSigned`, then activate again. |
+| GUI page without styling or charts | The browser cannot reach the CDN, or `DJANGO_DEBUG=0` is set and `runserver` was started without `--insecure`. |
+
+## Data and licensing
+
+MSH-WSD and the UMLS content it references are covered by the UMLS license. Each user must download
+them under their own license. Do not redistribute them or commit them to this repository.
+
+If you use the corpus, cite:
+
+> Jimeno-Yepes, A. J., McInnes, B. T., & Aronson, A. R. (2011). *Exploiting MeSH indexing in MEDLINE to
+> generate a data set for word sense disambiguation.* BMC Bioinformatics, 12, 223.
+> https://doi.org/10.1186/1471-2105-12-223
+
+No license has been chosen yet for the project code. Third-party packages keep their own licenses.
+
+## Authors
+
+- Giorgio Alleva
+- Francesca Lonardo
