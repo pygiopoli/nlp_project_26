@@ -1,5 +1,5 @@
 method,acronyms acc,acronyms cov,terms acc,terms cov
-"Wu-Palmer (pywsd, Task 4)",0.003,0.5,0.0,
-alpha = 1,0.0,0.0,0.0,
-alpha = 0.8,0.002,0.3,0.0,
-alpha = 0.5,0.003,0.5,0.0,
+"Wu-Palmer (pywsd, Task 4)",0.141,0.911,0.222,0.619
+alpha = 1,0.13,0.835,0.221,0.618
+alpha = 0.8,0.131,0.835,0.232,0.637
+alpha = 0.5,0.134,0.842,0.231,0.631
