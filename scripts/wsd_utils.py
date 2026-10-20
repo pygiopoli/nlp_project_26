@@ -185,7 +185,7 @@ MAPPING = {
                     "C0007799": ["ventricle.n.01"]},                 # Cerebral Ventricles
 }
 
-# ---------------------------------------------------------------- pywsd (Tasks 4 and 6)
+# ---------------------------------------------------------------- pywsd (Tasks 4 and 6) -------------------------------------------------------------
 # pywsd uses Open English WordNet 2024, while our MAPPING uses the NLTK names (WordNet 3.0).
 # We translate the pywsd answers with the sense key, which identifies the same sense in both versions.
 
@@ -219,10 +219,7 @@ def pywsd_form(word, mapping=MAPPING):
     return best_form
 
 
-# ---------------------------------------------------------------- context window and sample (Tasks 4 and 6)
-# The similarity methods are slow, so we use only the words around the target
-# and a balanced random sample of abstracts (same number for each sense).
-
+# ---------------------------------------------------------------- context window and sample (Tasks 4 and 6) -------------------------------------------------------------
 WINDOW = 10         # context words on each side of the target
 N_PER_SENSE = 10    # abstracts sampled for each sense of each word
 
