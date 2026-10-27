@@ -12,15 +12,17 @@ This README covers only setup and usage.
 
 | Task | Description | Location |
 |---|---|---|
-| 1 | NLTK Lesk on the example sentence ("drug") | [scripts/p1_2_lesk/drug_disamb.ipynb](scripts/p1_2_lesk/drug_disamb.ipynb) |
-| 2 | NLTK Lesk on 10 acronyms + 10 terms of MSH-WSD, manual CUI → WordNet mapping | [scripts/p1_2_lesk/task_2.ipynb](scripts/p1_2_lesk/task_2.ipynb) |
+| 1 | Standard and extended Lesk on the example sentence ("drug"), with and without POS restriction | [scripts/p1_2_lesk/drug_disamb.ipynb](scripts/p1_2_lesk/drug_disamb.ipynb) |
+| 2 | NLTK Lesk on two selections of 10 acronyms + 10 terms of MSH-WSD, manual CUI → WordNet mapping, Lesk variants, MFS baseline and simplified Lesk | [scripts/p1_2_lesk/task_2.ipynb](scripts/p1_2_lesk/task_2.ipynb) |
 | 3 | pywsd algorithms on example sentences | [scripts/p3_4_pywsd/task_3.ipynb](scripts/p3_4_pywsd/task_3.ipynb) |
 | 4 | pywsd algorithms on MSH-WSD | [scripts/p3_4_pywsd/task_4.ipynb](scripts/p3_4_pywsd/task_4.ipynb) |
-| 5 | Soundex + Levenshtein phonetic distance matrices | [scripts/p5_6_phonetic/p_distance.ipynb](scripts/p5_6_phonetic/p_distance.ipynb) |
+| 5 | Soundex + Levenshtein distance matrices, also on translations of the sentence | [scripts/p5_6_phonetic/p_distance.ipynb](scripts/p5_6_phonetic/p_distance.ipynb) |
 | 6 | Wu–Palmer + phonetic similarity on MSH-WSD | [scripts/p5_6_phonetic/task_6.ipynb](scripts/p5_6_phonetic/task_6.ipynb) |
-| 4 + 6 | Tasks 4 and 6 on the full dataset, with an automatic CUI → WordNet mapping | [scripts/full_dataset/run_full_dataset.py](scripts/full_dataset/run_full_dataset.py) |
 | 7 | Web GUI (Django) | [dis_project/](dis_project/) |
-| Extension | SapBERT embedding-based WSD over UMLS senses | [scripts/bert_extention/bert_wsd.ipynb](scripts/bert_extention/bert_wsd.ipynb) |
+| 8 | Literature review | [technical report](https://www.overleaf.com/project/6ac8dfcb5043816f71cb841f/share#925442360e3c2fa9925fb68716f5c4f14e8b7d8c9e26725a) |
+| 9 | Tasks 4 and 6 on the full dataset, with an automatic CUI → WordNet mapping validated against the manual one | [scripts/full_dataset/run_full_dataset.py](scripts/full_dataset/run_full_dataset.py) |
+| 10 | Phonetic word matching (Soundex, edit distance) inside simplified Lesk | [scripts/p5_6_phonetic/phonetic_lesk.ipynb](scripts/p5_6_phonetic/phonetic_lesk.ipynb) |
+| 11 | SapBERT embedding-based WSD over UMLS senses | [scripts/bert_extention/bert_wsd.ipynb](scripts/bert_extention/bert_wsd.ipynb) |
 
 ## Repository layout
 
@@ -311,7 +313,8 @@ If you use the corpus, cite:
 > generate a data set for word sense disambiguation.* BMC Bioinformatics, 12, 223.
 > https://doi.org/10.1186/1471-2105-12-223
 
-No license has been chosen yet for the project code. Third-party packages keep their own licenses.
+The project is licensed under the [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
+license. Third-party packages keep their own licenses.
 
 ## Authors
 
