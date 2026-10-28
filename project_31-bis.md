@@ -1,5 +1,5 @@
 Project 31-bis (extended): WordSense Disambiguation in Medical Context
-This project aims to contribute to Word Sense Disambiguation in the domains of biomedical and clinical text, and studies how much the results depend on the algorithm and how much on the knowledge source used to describe the senses (WordNet vs. UMLS). aggiungi questa frase che mi piaceva del mio e metti il tuo
+This project aims to contribute to Word Sense Disambiguation in the domains of biomedical and clinical text, and studies how much the results depend on the algorithm and how much on the knowledge source used to describe the senses (WordNet vs. UMLS).
 
 1) Initially study again Lesk implementation in NLTK. Consider the sentence “I have been prescribed two
 important drugs today during my visit to clinic” and assume that the target word is “drug”. Construct a
@@ -12,7 +12,7 @@ context without stopwords. Run it with and without the POS restriction, print th
 sense and flag the choices made by a tie or with no overlap. And, comment on the outcome the efficiency of
 the result.
 
-2) Download and study MSH-WSD dataset from https://github.com/clips/yarn. The database contains 203
+2) [Extended] Download and study MSH-WSD dataset from https://github.com/clips/yarn. The database contains 203
 ambiguous terms that include regular terms, acronyms. Define a rule that separates acronyms from regular
 terms, correct its mistakes by hand and exclude the words that can be both. Make a random, reproducible
 selection of 10 acronyms and 10 regular terms. Since MSH-WSD gives the correct senses as UMLS concepts
@@ -46,7 +46,7 @@ of the ground truth (e.g. through sense keys), use a context window around the t
 abstracts balanced across the senses, and report both the accuracy and the accuracy on the senses covered
 by WordNet, on average and for each word.
 
-5) We would like to extend similarity-based Lesk algorithm to include phonetic matching, which evaluates
+5) [Extended] We would like to extend similarity-based Lesk algorithm to include phonetic matching, which evaluates
 phonetically similar wording. For this purpose, use the “Fuzzy” library in python (or an equivalent
 implementation of Soundex) to generate the character string that identifies phonetically similar words,
 and then use edit distance to compute the phonetic similarity between two words. See an example of
@@ -63,7 +63,7 @@ MSH-WSD dataset. Compare the results with other values of the coefficient (e.g. 
 sentence of 1) how the phonetic part changes the chosen sense, and identify the words where it helps and
 the words where it hurts.
 
-7) Suggest a GUI of your choice that allows the user to visualize the various outputs of the disambiguation
+7) [Extended] Suggest a GUI of your choice that allows the user to visualize the various outputs of the disambiguation
 task. Ideally the user can input a sentence and a target word to be disambiguated. The user should be able
 to run one algorithm or compare all of them and see, for each algorithm, the chosen sense, its score, the
 ranking of all the candidate senses (also as a chart), the words shared by the sentence and the
@@ -72,17 +72,17 @@ algorithms can be added without changing the interface, and test it.
 
 8) Identify relevant literature and critical analysis in this field.
 
-9) Repeat 4) and 6) on the full MSH-WSD dataset. For this purpose, download the UMLS names and definitions
+9) [Extension] Repeat 4) and 6) on the full MSH-WSD dataset. For this purpose, download the UMLS names and definitions
 of all the CUIs, build an automatic CUI → WordNet mapping and validate it against the manual mapping of 2)
 (precision, recall, F1).
 
-10) Use the phonetic matching of 5) inside the simplified Lesk of 2), to compare words instead of senses: a
+10) [Extension] Use the phonetic matching of 5) inside the simplified Lesk of 2), to compare words instead of senses: a
 word of the context matches a word of the signature if the two are identical, if they have the same
 Soundex code, or if they differ by at most one edit. Test the three rules on pairs of spelling variants and
 of different words, run them on the selected MSH-WSD words and analyse the abstracts where the chosen
 sense changes.
 
-11) Disambiguate the MSH-WSD words directly among their UMLS senses, without WordNet, using the biomedical
+11) [Extension] Disambiguate the MSH-WSD words directly among their UMLS senses, without WordNet, using the biomedical
 embeddings of SapBERT: describe each CUI with its UMLS names and definition, embed the description and the
 context window, and choose the sense with the highest cosine similarity. Report the average accuracy on all
 acronyms and on all regular terms against a random choice, compare it with the algorithms of 4), study the

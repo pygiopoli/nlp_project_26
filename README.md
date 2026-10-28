@@ -4,7 +4,7 @@ Knowledge-based Word Sense Disambiguation (WSD) experiments on biomedical text, 
 [MSH-WSD](https://lhncbc.nlm.nih.gov/ii/areas/WSD/collaboration.html) benchmark, plus a Django web app
 that runs and compares WSD algorithms on a user-supplied sentence.
 
-The assignment is in [project_31.md](project_31.md). Methods, results and discussion are in the
+The assignment is in [project_31-bis.md](project_31-bis.md). Methods, results and discussion are in the
 [technical report](https://www.overleaf.com/project/6ac8dfcb5043816f71cb841f/share#925442360e3c2fa9925fb68716f5c4f14e8b7d8c9e26725a).
 This README covers only setup and usage.
 
@@ -12,39 +12,56 @@ This README covers only setup and usage.
 
 | Task | Description | Location |
 |---|---|---|
-| 1 | Standard and extended Lesk on the example sentence ("drug"), with and without POS restriction | [scripts/p1_2_lesk/drug_disamb.ipynb](scripts/p1_2_lesk/drug_disamb.ipynb) |
+| 1 | Standard and extended Lesk on the example sentence ("drug"), with and without POS restriction | [scripts/p1_2_lesk/task_1.ipynb](scripts/p1_2_lesk/task_1.ipynb) |
 | 2 | NLTK Lesk on two selections of 10 acronyms + 10 terms of MSH-WSD, manual CUI → WordNet mapping, Lesk variants, MFS baseline and simplified Lesk | [scripts/p1_2_lesk/task_2.ipynb](scripts/p1_2_lesk/task_2.ipynb) |
 | 3 | pywsd algorithms on example sentences | [scripts/p3_4_pywsd/task_3.ipynb](scripts/p3_4_pywsd/task_3.ipynb) |
 | 4 | pywsd algorithms on MSH-WSD | [scripts/p3_4_pywsd/task_4.ipynb](scripts/p3_4_pywsd/task_4.ipynb) |
-| 5 | Soundex + Levenshtein distance matrices, also on translations of the sentence | [scripts/p5_6_phonetic/p_distance.ipynb](scripts/p5_6_phonetic/p_distance.ipynb) |
-| 6 | Wu–Palmer + phonetic similarity on MSH-WSD | [scripts/p5_6_phonetic/task_6.ipynb](scripts/p5_6_phonetic/task_6.ipynb) |
+| 5 | Soundex + Levenshtein distance matrices, also on translations of the sentence | [scripts/p5_6_10_phonetic/p_distance.ipynb](scripts/p5_6_10_phonetic/p_distance.ipynb) |
+| 6 | Wu–Palmer + phonetic similarity on MSH-WSD | [scripts/p5_6_10_phonetic/task_6.ipynb](scripts/p5_6_10_phonetic/task_6.ipynb) |
 | 7 | Web GUI (Django) | [dis_project/](dis_project/) |
 | 8 | Literature review | [technical report](https://www.overleaf.com/project/6ac8dfcb5043816f71cb841f/share#925442360e3c2fa9925fb68716f5c4f14e8b7d8c9e26725a) |
-| 9 | Tasks 4 and 6 on the full dataset, with an automatic CUI → WordNet mapping validated against the manual one | [scripts/full_dataset/run_full_dataset.py](scripts/full_dataset/run_full_dataset.py) |
-| 10 | Phonetic word matching (Soundex, edit distance) inside simplified Lesk | [scripts/p5_6_phonetic/phonetic_lesk.ipynb](scripts/p5_6_phonetic/phonetic_lesk.ipynb) |
-| 11 | SapBERT embedding-based WSD over UMLS senses | [scripts/bert_extention/bert_wsd.ipynb](scripts/bert_extention/bert_wsd.ipynb) |
+| 9 | Tasks 4 and 6 on the full dataset, with an automatic CUI → WordNet mapping validated against the manual one | [scripts/p9_full_dataset/task_9.py](scripts/p9_full_dataset/task_9.py) |
+| 10 | Phonetic word matching (Soundex, edit distance) inside simplified Lesk | [scripts/p5_6_10_phonetic/task_10.ipynb](scripts/p5_6_10_phonetic/task_10.ipynb) |
+| 11 | SapBERT embedding-based WSD over UMLS senses | [scripts/p11_bert/task_11.ipynb](scripts/p11_bert/task_11.ipynb) |
 
 ## Repository layout
 
 ```text
 .
-├── data/                       # the MSH-WSD corpus is not tracked into the repository beause of copyright
+├── data/                           # not tracked (UMLS license): MSHCorpus/ and umls_cui_info.json, see step 5
 ├── scripts/
-│   ├── wsd_utils.py            # shared: MSH-WSD loader, acronym/term split, CUI → WordNet
-│   │                           #   mapping, pywsd → NLTK sense translation, sampling, metrics
-│   ├── p1_2_lesk/              # Tasks 1–2
-│   ├── p3_4_pywsd/             # Tasks 3–4 (+ cached predictions)
-│   ├── p5_6_phonetic/          # Tasks 5–6, utils.py (Soundex, Levenshtein)
-│   ├── full_dataset/           # command-line pipeline for Tasks 4 and 6 on all words, results/
-│   └── bert_extention/         # SapBERT extension (+ cached predictions)
-├── dis_project/                # Django web app (Task 7)
-│   ├── config/                 # settings, root URLconf, WSGI/ASGI
-│   ├── algorithms/             # WSD algorithms, independent of Django (+ tests)
-│   ├── wsd/                    # Django app: form, views, services, templates, static JS (+ tests)
+│   ├── wsd_utils.py                # shared: MSH-WSD loader, acronym/term split, CUI → WordNet
+│   │                               #   mapping, pywsd → NLTK sense translation, sampling, metrics
+│   ├── p1_2_lesk/
+│   │   ├── task_1.ipynb            # Task 1
+│   │   └── task_2.ipynb            # Task 2
+│   ├── p3_4_pywsd/
+│   │   ├── task_3.ipynb            # Task 3
+│   │   ├── task_4.ipynb            # Task 4
+│   │   └── task4_predictions.json  # cached predictions of Task 4
+│   ├── p5_6_10_phonetic/
+│   │   ├── utils.py                # Soundex and Levenshtein distance
+│   │   ├── p_distance.ipynb        # Task 5
+│   │   ├── distance_matrices.png   # distance matrices saved by p_distance.ipynb
+│   │   ├── task_6.ipynb            # Task 6
+│   │   ├── task6_predictions.json  # cached predictions of Task 6
+│   │   └── task_10.ipynb           # Task 10
+│   ├── p9_full_dataset/
+│   │   ├── task_9.py               # Task 9: command-line pipeline for Tasks 4 and 6 on all words
+│   │   ├── utils.py                # copy of p5_6_10_phonetic/utils.py
+│   │   └── results/                # automatic mapping, predictions and result tables
+│   └── p11_bert/
+│       ├── task_11.ipynb           # Task 11
+│       └── bert_predictions.json   # cached predictions of Task 11
+├── dis_project/                    # Django web app (Task 7)
+│   ├── config/                     # settings, root URLconf, WSGI/ASGI
+│   ├── algorithms/                 # WSD algorithms, independent of Django (+ tests)
+│   ├── wsd/                        # Django app: form, views, services, templates, static JS (+ tests)
 │   ├── manage.py
-│   └── requirements.txt        # GUI dependencies only (Django, NLTK, torch, transformers)
-├── requirements.txt            # everything (includes dis_project/requirements.txt)
-└── project_31.md               # assignment
+│   └── requirements.txt            # GUI dependencies only (Django, NLTK, torch, transformers)
+├── requirements.txt                # everything (includes dis_project/requirements.txt)
+├── project_31-bis.md               # assignment
+└── Word Sense Disambiguation in Medical Context.pptx  # presentation
 ```
 
 ## Prerequisites
@@ -121,7 +138,7 @@ data/
 │   ├── benchmark_mesh.txt            # word → candidate CUIs
 │   ├── README.txt
 │   └── <word>_pmids_tagged.arff      # one file per ambiguous word (203 files)
-└── umls_cui_info.json                # generated later by `run_full_dataset.py umls`
+└── umls_cui_info.json                # generated later by `task_9.py umls`
 ```
 
 `scripts/wsd_utils.py` finds the corpus relative to its own location (`DATA_DIR`), so the path must match
@@ -135,8 +152,8 @@ After signing in to UTS, copy the API key from your profile page. The key is ent
 
 - `task_2.ipynb` uses it only to show the UMLS name of each CUI. Without a valid key the names are
   empty, but the evaluation still runs.
-- `run_full_dataset.py umls` uses it to download names and definitions for all CUIs. Both the full-dataset
-  pipeline and the SapBERT extension need this step.
+- `task_9.py umls` uses it to download names and definitions for all CUIs. Both the full-dataset
+  pipeline (Task 9) and the SapBERT extension (Task 11) need this step.
 
 ## Running the notebooks
 
@@ -151,13 +168,14 @@ jupyter lab
 
 | Notebook | Needs MSH-WSD | Needs UMLS | Cache file |
 |---|:---:|:---:|---|
-| `p1_2_lesk/drug_disamb.ipynb` | | | |
+| `p1_2_lesk/task_1.ipynb` | | | |
 | `p1_2_lesk/task_2.ipynb` | ✓ | API key (optional) | |
 | `p3_4_pywsd/task_3.ipynb` | | | |
 | `p3_4_pywsd/task_4.ipynb` | ✓ | | `task4_predictions.json` |
-| `p5_6_phonetic/p_distance.ipynb` | | | |
-| `p5_6_phonetic/task_6.ipynb` | ✓ | | `task6_predictions.json` |
-| `bert_extention/bert_wsd.ipynb` | ✓ | `data/umls_cui_info.json` | `bert_predictions.json` |
+| `p5_6_10_phonetic/p_distance.ipynb` | | | |
+| `p5_6_10_phonetic/task_6.ipynb` | ✓ | | `task6_predictions.json` |
+| `p5_6_10_phonetic/task_10.ipynb` | ✓ | | |
+| `p11_bert/task_11.ipynb` | ✓ | `data/umls_cui_info.json` | `bert_predictions.json` |
 
 **Caches.** The pywsd similarity methods and SapBERT are slow, so the evaluation loops save their predictions
 to a JSON file next to the notebook after every word. Words already in the file are skipped. The repository
@@ -169,24 +187,24 @@ Wu–Palmer baseline.
 
 | Name | Value | Meaning |
 |---|---|---|
-| `WINDOW` | 10 | context words on each side of the target (Tasks 4, 6 and the extension) |
+| `WINDOW` | 10 | context words on each side of the target (Tasks 4, 6, 9 and 11) |
 | `N_PER_SENSE` | 10 | abstracts sampled for each sense (sampling seed 0) |
 | `MAPPING` | 39 words | manual CUI → WordNet mapping (both Task 2 selections, seeds 42 and 7) |
 
-## Full-dataset pipeline (Tasks 4 and 6 on all words)
+## Full-dataset pipeline (Task 9: Tasks 4 and 6 on all words)
 
 Run it from its folder, because it uses relative paths:
 
 ```bash
-cd scripts/full_dataset
+cd scripts/p9_full_dataset
 
-python run_full_dataset.py info          # number of words and CUIs (quick check)
-python run_full_dataset.py umls          # prompts for the UMLS API key → data/umls_cui_info.json
-python run_full_dataset.py mapping [N]   # automatic CUI → WordNet mapping → results/auto_mapping.json
-                                         #   N = minimum word overlap (default 4)
-python run_full_dataset.py task4         # Task 4 methods → results/task4_predictions.json
-python run_full_dataset.py task6         # Wu–Palmer + phonetic → results/task6_predictions.json
-python run_full_dataset.py results       # prints the tables → results/task4_results.csv, task6_results.csv
+python task_9.py info          # number of words and CUIs (quick check)
+python task_9.py umls          # prompts for the UMLS API key → data/umls_cui_info.json
+python task_9.py mapping [N]   # automatic CUI → WordNet mapping → results/auto_mapping.json
+                               #   N = minimum word overlap (default 4)
+python task_9.py task4         # Task 4 methods → results/task4_predictions.json
+python task_9.py task6         # Wu–Palmer + phonetic → results/task6_predictions.json
+python task_9.py results       # prints the tables → results/task4_results.csv, task6_results.csv
 ```
 
 - Each step reads the output of the previous ones.
@@ -197,13 +215,13 @@ python run_full_dataset.py results       # prints the tables → results/task4_r
   the earlier steps. `data/umls_cui_info.json` is not tracked, though: run `umls` locally if you need to
   rebuild the mapping or use the SapBERT extension.
 
-## SapBERT extension
+## SapBERT extension (Task 11)
 
-Before running `scripts/bert_extention/bert_wsd.ipynb`:
+Before running `scripts/p11_bert/task_11.ipynb`:
 
 1. Install `requirements.txt` (step 3 of Setup). The first cell of the notebook runs `%pip install` for the
    same packages; skip it if they are already installed.
-2. Run `python run_full_dataset.py umls` to create `data/umls_cui_info.json`. The notebook builds each
+2. Run `python task_9.py umls` from `scripts/p9_full_dataset` to create `data/umls_cui_info.json`. The notebook builds each
    sense description from the names and definitions in this file.
 
 On the first run, the notebook downloads the model `cambridgeltl/SapBERT-from-PubMedBERT-fulltext`
@@ -249,13 +267,13 @@ Then open <http://127.0.0.1:8000/>.
 | `extended_lesk_pos` | Extended Lesk, candidates limited to the POS of the target |
 | `wu_palmer` | Wu–Palmer similarity with the senses of the context words (Task 3) |
 | `wu_palmer_phonetic` | 0.5 · Wu–Palmer + 0.5 · phonetic similarity (Task 6) |
-| `sapbert` | SapBERT embeddings, choosing among the UMLS senses (CUIs) of MSH-WSD (extension) |
+| `sapbert` | SapBERT embeddings, choosing among the UMLS senses (CUIs) of MSH-WSD (Task 11) |
 | `all` | Runs every registered algorithm and compares them |
 
 The WordNet-based algorithms work with any word. `sapbert` instead works only on the ambiguous words of
 MSH-WSD (e.g. *cold*, *ventricle*), and gives no candidates for other words. It needs two files that are
 not in the repository: `data/MSHCorpus/benchmark_mesh.txt` (step 5 of Setup) and `data/umls_cui_info.json`
-(`run_full_dataset.py umls`). The first time an MSH-WSD word is disambiguated, the app downloads and loads
+(`task_9.py umls`). The first time an MSH-WSD word is disambiguated, the app downloads and loads
 the SapBERT model, which takes a while. Because its senses are UMLS concepts, its choice never matches the
 WordNet senses of the other algorithms in the comparison.
 
@@ -297,7 +315,7 @@ need to change anything else.
 | Error about `oewn:2024` when importing `wsd_utils` or `pywsd` | Run `python -c "import wn; wn.download('oewn:2024')"`. |
 | `FileNotFoundError` for `data/MSHCorpus/benchmark_mesh.txt` | The corpus is missing or in the wrong place (see step 5). |
 | `ModuleNotFoundError: No module named 'wsd_utils'` | The notebook or script is not running from its own folder. |
-| `FileNotFoundError` for `data/umls_cui_info.json` (notebook, or SapBERT card in the GUI) | Run `python run_full_dataset.py umls` from `scripts/full_dataset`. |
+| `FileNotFoundError` for `data/umls_cui_info.json` (notebook, or SapBERT card in the GUI) | Run `python task_9.py umls` from `scripts/p9_full_dataset`. |
 | SapBERT card shows `FileNotFoundError` for `benchmark_mesh.txt` | The MSH-WSD corpus is missing (see step 5). |
 | PowerShell blocks `Activate.ps1` | Run `Set-ExecutionPolicy -Scope Process RemoteSigned`, then activate again. |
 | GUI page without styling or charts | The browser cannot reach the CDN, or `DJANGO_DEBUG=0` is set and `runserver` was started without `--insecure`. |
