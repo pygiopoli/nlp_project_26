@@ -7,6 +7,7 @@ pandas==3.0.3
 matplotlib==3.10.7
 requests==2.34.2
 jupyterlab==4.6.3
+ipywidgets          # progress bars in Jupyter (SapBERT extension)
 
-# Task 7: web GUI (dis_project/)
+# Task 7: web GUI (dis_project/); also brings torch and transformers, used by the SapBERT extension
 -r dis_project/requirements.txt

@@ -26,7 +26,10 @@ class BuildRegistryTests(TestCase):
 
 class RegisteredAlgorithmsTests(TestCase):
     def test_expected_keys_in_order(self) -> None:
-        self.assertEqual(list(ALGORITHMS), ["lesk", "lesk_pos", "extended_lesk", "extended_lesk_pos"])
+        self.assertEqual(list(ALGORITHMS), [
+            "lesk", "lesk_pos", "extended_lesk", "extended_lesk_pos",
+            "wu_palmer", "wu_palmer_phonetic", "sapbert",
+        ])
 
 
 class GetAlgorithmTests(TestCase):

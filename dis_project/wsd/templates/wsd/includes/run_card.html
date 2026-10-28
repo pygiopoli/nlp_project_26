@@ -21,7 +21,7 @@
         {# Chosen sense #}
         <h3 class="h5 mb-2"><code>{{ best.sense.id }}</code> <small class="text-body-secondary fw-normal">{{ best.sense.pos|pos_name }}</small></h3>
         <div class="d-flex flex-wrap gap-1 mb-2">
-          <span class="badge text-bg-primary">score {{ best.score|floatformat }}</span>
+          <span class="badge text-bg-primary">score {{ best.score|floatformat:"-3" }}</span>
           <span class="badge text-bg-secondary">POS filter: {{ result.pos_filter|pos_name|default:"none" }}</span>
           {% if result.is_fallback %}
             <span class="badge text-bg-warning"
@@ -83,7 +83,7 @@
               <tbody>
                 {% for candidate in result.ranking %}
                   <tr {% if forloop.first %}class="table-primary"{% endif %}>
-                    <td>{{ candidate.score|floatformat }}</td>
+                    <td>{{ candidate.score|floatformat:"-3" }}</td>
                     <td><code>{{ candidate.sense.id }}</code> <span class="small text-body-secondary">{{ candidate.sense.pos|pos_name }}</span></td>
                     <td class="small">{{ candidate.sense.definition }}</td>
                     <td class="small">{{ candidate.matched_words|join:", "|default:"—" }}</td>
