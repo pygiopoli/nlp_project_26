@@ -29,7 +29,7 @@ from pywsd.similarity import sim
 from pywsd.utils import lemmatize
 from pywsd.tokenize import word_tokenize
 
-sys.path.append("../p5_6_phonetic")          # utils.py of Task 5 (Soundex and Levenshtein)
+sys.path.append("../p5_6_10_phonetic")          # utils.py of Task 5 (Soundex and Levenshtein)
 import utils as u
 
 import requests
